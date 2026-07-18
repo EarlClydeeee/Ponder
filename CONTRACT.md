@@ -12,7 +12,12 @@ with the owner's review.
 | C5 | `POST /api/generate-slides` → `{ deck_id, topic, slides[] }` | Shello | David | [app/api/generate-slides/route.ts](app/api/generate-slides/route.ts) |
 | C6 | DSD theme tokens | Ivy | All | [app/globals.css](app/globals.css) + [lib/theme.ts](lib/theme.ts) |
 
-Extra route: `POST /api/analyze-portrait` → `PersonaConfig` (persona pre-pass).
+Extra routes:
+
+- `POST /api/analyze-portrait` → `PersonaConfig` (persona pre-pass).
+- `POST /api/generate-persona` with `{ photoDataUrl }` → `PersonaProfile`.
+- `POST /api/persona-chat` with `{ profile, history, userMessage }` →
+  `{ reply, usedWebSearch, citations[] }`.
 
 Speech-to-speech test harness (self-contained): [app/test/speech-to-speech/](app/test/speech-to-speech/) — not part of C1–C6; reintegrate piecemeal from there.
 

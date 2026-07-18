@@ -1,0 +1,127 @@
+/* Official Ponder design tokens. Components should prefer semantic tokens. */
+:root {
+  --color-green-900: #1a3d28;
+  --color-green-700: #2d5a3d;
+  --color-green-500: #3d7a5c;
+  --color-green-400: #4a9478;
+  --color-green-300: #5ba888;
+  --color-green-200: #8ac4a8;
+  --color-green-100: #c8e6c0;
+  --color-green-50: #eaf5ee;
+  --color-honey-500: #fad87a;
+  --color-honey-400: #fad060;
+  --color-honey-100: rgba(250, 216, 122, 0.16);
+  --color-honey-border: rgba(250, 216, 122, 0.45);
+  --color-cream-0: #fefcf7;
+  --color-cream-1: #f5f0e8;
+  --color-cream-2: #eae4d8;
+  --color-cream-3: #d4c9b5;
+  --color-cream-4: #b8b0a0;
+  --color-brown-900: #2d1e0e;
+  --color-brown-700: #3a2e22;
+  --color-brown-500: #5a5045;
+  --color-brown-300: #8a7e6e;
+  --color-brown-200: #a89e8c;
+  --color-dark-900: #060d08;
+  --color-dark-800: #0e1a12;
+  --color-dark-700: #1a2e1e;
+  --color-red-500: #c0392b;
+
+  --bg-page: var(--color-cream-1);
+  --bg-surface: var(--color-cream-0);
+  --bg-card: var(--color-cream-2);
+  --bg-border: var(--color-cream-3);
+  --bg-call: var(--color-dark-800);
+  --text-primary: var(--color-brown-700);
+  --text-secondary: var(--color-brown-300);
+  --text-muted: var(--color-brown-200);
+  --text-heading: var(--color-brown-900);
+  --text-on-green: #fff;
+  --text-on-dark: rgba(255, 255, 255, 0.9);
+  --brand-primary: var(--color-green-500);
+  --brand-dark: var(--color-green-700);
+  --brand-light: var(--color-green-300);
+  --accent: var(--color-honey-500);
+  --accent-glow: var(--color-honey-400);
+  --border-default: var(--color-cream-3);
+  --border-light: var(--color-cream-2);
+  --border-call: rgba(255, 255, 255, 0.1);
+  --border-call-strong: rgba(255, 255, 255, 0.22);
+
+  --font-display: "Nunito", sans-serif;
+  --font-body: "Nunito Sans", sans-serif;
+  --text-xs: 10px;
+  --text-sm: 11px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 15px;
+  --text-xl: 18px;
+  --text-2xl: 21px;
+  --text-3xl: 22px;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 10px;
+  --space-4: 12px;
+  --space-5: 14px;
+  --space-6: 16px;
+  --space-8: 20px;
+  --space-10: 24px;
+  --space-12: 28px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+  --shadow-card: 0 2px 8px rgba(58, 46, 34, 0.08);
+  --shadow-float: 0 4px 16px rgba(58, 46, 34, 0.12);
+  --duration-fast: 100ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Compatibility aliases for existing interactive product screens. */
+  --color-bg: var(--bg-page);
+  --color-surface: var(--bg-surface);
+  --color-border: var(--border-default);
+  --color-primary: var(--brand-primary);
+  --color-primary-hover: var(--brand-dark);
+  --color-accent: var(--accent-glow);
+  --color-text: var(--text-primary);
+  --color-inverse: var(--text-on-green);
+  --color-muted: var(--text-secondary);
+  --font-sans: var(--font-body);
+}
+
+.ponder-logo {
+  color: var(--brand-dark);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-extrabold);
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--brand-primary);
+  color: var(--text-on-green);
+  cursor: pointer;
+  transition: background var(--duration-base), transform var(--duration-fast);
+}
+.btn-primary:hover { background: var(--brand-dark); }
+.btn-primary:active { transform: scale(0.98); }
+.card {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-card);
+}
