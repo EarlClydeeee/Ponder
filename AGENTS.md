@@ -54,10 +54,10 @@ Browser (/app) ──WebRTC──────────────► OpenAI 
 - **State machine** (RFC §3): `idle → analyzing → connecting → alive →
   listening ⇄ speaking → generating_slides → alive`, degrading to
   `fallback_text` (Realtime drop) or `error`.
-- Engine emits events `phase | transcript | slides | error`; the hook exposes
-  `{ phase, subjectLabel, transcript, decks, activeDeck, error, talkEnabled,
-  amplitude, awaken, startListening, stopListening, sendText, regenerateSlides,
-  endSession }`.
+- Engine emits events `phase | transcript | slides | error | face`; the hook
+  exposes `{ phase, subjectLabel, transcript, decks, activeDeck, error,
+  talkEnabled, amplitude, awakenResult, awaken, startListening, stopListening,
+  sendText, regenerateSlides, endSession }`.
 
 Layout:
 ```
