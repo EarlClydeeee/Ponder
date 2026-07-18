@@ -62,6 +62,7 @@ export class LivingPortraitEngine {
     transcript: new Set(),
     slides: new Set(),
     error: new Set(),
+    face: new Set(),
   };
 
   private phase: PortraitPhase = "idle";
