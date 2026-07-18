@@ -17,6 +17,7 @@ import { RealtimeSession } from "./RealtimeSession";
 import { sessionStore } from "./sessionStore";
 import type {
   AwakenConfig,
+  AwakenResult,
   EngineEvents,
   PersonaProfile,
   PortraitError,
@@ -40,6 +41,21 @@ function openingInstruction(greeting: string): string {
   );
 }
 
+/** Same placement derivation as /test/cam when the route suggests a CSS face. */
+function withFacePlacement(result: AwakenResult): AwakenResult {
+  if (result.faceMode !== "suggested_face" || result.facePlacement) return result;
+  const b = result.subjectBounds;
+  return {
+    ...result,
+    facePlacement: {
+      x: b.x + b.width / 2,
+      y: b.y + b.height * 0.44,
+      scale: Math.min(1.2, Math.max(0.45, Math.min(b.width, b.height) * 1.5)),
+      rotation: 0,
+    },
+  };
+}
+
 export class LivingPortraitEngine {
   private handlers: { [E in keyof EngineEvents]: Set<Handler<E>> } = {
     phase: new Set(),
@@ -51,6 +67,7 @@ export class LivingPortraitEngine {
   private phase: PortraitPhase = "idle";
   private sessionId = "";
   private profile: PersonaProfile | null = null;
+  private faceResult: AwakenResult | null = null;
   private realtime: RealtimeSession | null = null;
   private transcript: TranscriptTurn[] = [];
   readonly animator = new PortraitAnimator();
@@ -96,10 +113,13 @@ export class LivingPortraitEngine {
     this.sessionId = config.sessionId ?? crypto.randomUUID();
     this.transcript = [];
 
-    // 1. ANALYZING — persona generation (proven /test/persona-chat pipeline).
+    // 1. ANALYZING — persona generation (proven /test/persona-chat pipeline),
+    // with the /test/cam face pre-pass racing alongside (non-blocking).
     this.setPhase("analyzing");
+    void this.fetchFace(config.photoDataUrl, this.sessionId);
     try {
       this.profile = await generatePersona(config.photoDataUrl);
+      this.syncFace();
     } catch {
       this.fail({
         code: "analyze_failed",
@@ -214,11 +234,49 @@ export class LivingPortraitEngine {
     this.animator.detach();
     this.realtime = null;
     this.profile = null;
+    this.faceResult = null;
     this.transcript = [];
     this.setPhase("idle");
   }
 
   // --- internals ---
+
+  /**
+   * Face/animation pre-pass (ported from /test/cam): analyze-portrait supplies
+   * faceMode/facePlacement/animationStyle for the living-face overlay. Runs in
+   * parallel with generatePersona and is a progressive enhancement — failures
+   * are swallowed and identity fields are overridden by the persona's.
+   */
+  private async fetchFace(
+    photoDataUrl: string,
+    sessionId: string,
+  ): Promise<void> {
+    try {
+      const res = await fetch("/api/analyze-portrait", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoDataUrl }),
+      });
+      if (!res.ok) return;
+      const result = (await res.json()) as AwakenResult;
+      if (this.sessionId !== sessionId || this.phase === "idle") return;
+      this.faceResult = withFacePlacement(result);
+      this.syncFace();
+    } catch {
+      // No face is better than a blocked awaken.
+    }
+  }
+
+  /** Emit the face once both pre-pass and persona are in, identity-merged. */
+  private syncFace(): void {
+    if (!this.faceResult || !this.profile) return;
+    this.emit("face", {
+      ...this.faceResult,
+      subjectLabel: this.profile.subjectLabel,
+      personaName: this.profile.subjectLabel,
+      greeting: this.profile.greeting,
+    });
+  }
 
   /**
    * Text fallback rides the proven /api/persona-chat SSE route with the same

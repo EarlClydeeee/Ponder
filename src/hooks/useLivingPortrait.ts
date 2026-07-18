@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LivingPortraitEngine } from "@/src/engine/LivingPortraitEngine";
 import type {
   AwakenConfig,
+  AwakenResult,
   PortraitError,
   PortraitPhase,
   SlideDeck,
@@ -25,6 +26,8 @@ export interface LivingPortraitState {
   error: PortraitError | null;
   talkEnabled: boolean;
   amplitude: number;
+  /** Face/animation pre-pass for the living-face overlay (may stay null). */
+  awakenResult: AwakenResult | null;
   awaken: (config: AwakenConfig) => Promise<void>;
   startListening: () => void;
   stopListening: () => void;
@@ -44,6 +47,7 @@ export function useLivingPortrait(): LivingPortraitState {
   const [decks, setDecks] = useState<SlideDeck[]>([]);
   const [error, setError] = useState<PortraitError | null>(null);
   const [amplitude, setAmplitude] = useState(0);
+  const [awakenResult, setAwakenResult] = useState<AwakenResult | null>(null);
 
   useEffect(() => {
     const offPhase = engine.on("phase", (p) => {
@@ -60,6 +64,7 @@ export function useLivingPortrait(): LivingPortraitState {
       }),
     );
     const offError = engine.on("error", setError);
+    const offFace = engine.on("face", setAwakenResult);
     const stopAmp = engine.animator.subscribe(setAmplitude);
 
     return () => {
@@ -67,6 +72,7 @@ export function useLivingPortrait(): LivingPortraitState {
       offTranscript();
       offSlides();
       offError();
+      offFace();
       stopAmp();
       engine.endSession();
     };
@@ -86,6 +92,8 @@ export function useLivingPortrait(): LivingPortraitState {
   const awaken = useCallback(
     (config: AwakenConfig) => {
       setError(null);
+      setAwakenResult(null);
+      setTranscript([]);
       return engine.awaken(config);
     },
     [engine],
@@ -105,6 +113,7 @@ export function useLivingPortrait(): LivingPortraitState {
     error,
     talkEnabled: phase === "alive" || phase === "listening",
     amplitude,
+    awakenResult,
     awaken,
     startListening: useCallback(() => engine.startListening(), [engine]),
     stopListening: useCallback(() => engine.stopListening(), [engine]),

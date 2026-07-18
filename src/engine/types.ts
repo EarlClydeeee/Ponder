@@ -107,6 +107,8 @@ export interface EngineEvents {
   transcript: TranscriptTurn;
   slides: SlideDeck;
   error: PortraitError;
+  /** Face/animation pre-pass (analyze-portrait), merged with the persona. */
+  face: AwakenResult;
 }
 
 // --- API route contracts (C4/C5 — owner: Shello, consumer: David) ---

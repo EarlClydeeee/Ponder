@@ -39,14 +39,14 @@ engine.stopListening(): void
 engine.sendText(text: string): void
 engine.regenerateSlides(deckId: string): Promise<void>
 engine.endSession(): void
-engine.on(event, handler): () => void   // 'phase' | 'transcript' | 'slides' | 'error'
+engine.on(event, handler): () => void   // 'phase' | 'transcript' | 'slides' | 'error' | 'face'
 ```
 
 ## Hook shape (C3)
 
 ```ts
 const { phase, subjectLabel, transcript, decks, activeDeck, error,
-        talkEnabled, amplitude,
+        talkEnabled, amplitude, awakenResult,
         awaken, startListening, stopListening, sendText,
         regenerateSlides, endSession } = useLivingPortrait();
 ```

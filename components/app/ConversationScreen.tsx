@@ -34,6 +34,7 @@ export function ConversationScreen({
     amplitude,
     talkEnabled,
     error,
+    awakenResult,
     startListening,
     stopListening,
     sendText,
@@ -69,6 +70,7 @@ export function ConversationScreen({
           phase={phase}
           subjectLabel={subjectLabel}
           amplitude={amplitude}
+          awakenResult={awakenResult}
         />
       </div>
 
