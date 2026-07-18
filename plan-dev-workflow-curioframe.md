@@ -1,7 +1,7 @@
-# CurioFrame — Team Workflow Plan
+# Ponder — Team Workflow Plan
 
 **Purpose:** Ship Living Portrait vertical slice in parallel for hackathon or 12-week build.
-**Baseline docs:** [prd-curioframe.md](prd-curioframe.md), [sdd-curioframe.md](sdd-curioframe.md), [rfc-curioframe-living-portrait-engine.md](rfc-curioframe-living-portrait-engine.md), [dsd-curioframe.md](dsd-curioframe.md).
+**Baseline docs:** [prd-Ponder.md](prd-Ponder.md), [sdd-Ponder.md](sdd-Ponder.md), [rfc-Ponder-living-portrait-engine.md](rfc-Ponder-living-portrait-engine.md), [dsd-Ponder.md](dsd-Ponder.md).
 
 **Team size:** 2–4 (hackathon default)
 **Persistence scope:** **Hybrid** — Supabase + local SQLite; cloud authoritative
@@ -138,8 +138,8 @@ Paste signatures into `CONTRACT.md` at repo root.
 
 **Must-have for launch *(sprint)*:**
 
-- [ ] [QAD release criteria](qad-curioframe.md#6-release-criteria-definition-of-done) green
+- [ ] [QAD release criteria](qad-Ponder.md#6-release-criteria-definition-of-done) green
 
 ---
 
-*Related: [rfc-curioframe-living-portrait-engine.md](rfc-curioframe-living-portrait-engine.md)*
+*Related: [rfc-Ponder-living-portrait-engine.md](rfc-Ponder-living-portrait-engine.md)*

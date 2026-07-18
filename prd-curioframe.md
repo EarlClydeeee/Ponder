@@ -1,17 +1,17 @@
 # Product Requirements Document (PRD)
 
-**Project:** CurioFrame — Living Portraits that teach through voice and visual story
+**Project:** Ponder — Living Portraits that teach through voice and visual story
 **Date:** 2026-07-18
 **Version:** 0.1
 **Owner:** earlc [TBD — confirm]
 **Status:** Draft
-**BRD:** [brd-curioframe.md](brd-curioframe.md)
+**BRD:** [brd-Ponder.md](brd-Ponder.md)
 
 ---
 
 ## 1. Product Purpose & Value Proposition
 
-CurioFrame lets anyone photograph an object or artwork and immediately talk with it in character. The portrait answers in a thematically matched voice (e.g., a measured female tone for Mona Lisa, a gravelly tone for an ancient statue), and while it explains, the app generates visual slides — maps, period scenes, diagrams — aligned to what is being said. Unlike static guides or text chatbots, CurioFrame keeps the subject visually present, makes learning feel like an interview, and supports endless follow-up questions so curiosity drives the session.
+Ponder lets anyone photograph an object or artwork and immediately talk with it in character. The portrait answers in a thematically matched voice (e.g., a measured female tone for Mona Lisa, a gravelly tone for an ancient statue), and while it explains, the app generates visual slides — maps, period scenes, diagrams — aligned to what is being said. Unlike static guides or text chatbots, Ponder keeps the subject visually present, makes learning feel like an interview, and supports endless follow-up questions so curiosity drives the session.
 
 ---
 
@@ -90,7 +90,7 @@ Acceptance Criteria:
 
 ## 5. UX & Design Intent
 
-**Design reference:** [dsd-curioframe.md](dsd-curioframe.md)
+**Design reference:** [dsd-Ponder.md](dsd-Ponder.md)
 
 **Key flows:**
 - Capture → Awaken → Talk — ≤3 taps from home to first voice response
@@ -190,4 +190,4 @@ Acceptance Criteria:
 
 ---
 
-*Next document: [DSD](dsd-curioframe.md) | [SDD](sdd-curioframe.md)*
+*Next document: [DSD](dsd-Ponder.md) | [SDD](sdd-Ponder.md)*

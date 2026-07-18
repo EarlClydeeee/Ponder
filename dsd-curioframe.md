@@ -1,10 +1,10 @@
 # Design System Document (DSD)
 
-**System Name:** CurioFrame Foundation
+**System Name:** Ponder Foundation
 **Date:** 2026-07-18
 **Version:** 0.1
 **Owner:** earlc [TBD — confirm]
-**PRD:** [prd-curioframe.md](prd-curioframe.md)
+**PRD:** [prd-Ponder.md](prd-Ponder.md)
 
 ---
 
@@ -201,4 +201,4 @@ VISUAL_DENSITY:     4   (portrait-forward, minimal lists)
 
 ---
 
-*Next document: [SDD](sdd-curioframe.md)*
+*Next document: [SDD](sdd-Ponder.md)*

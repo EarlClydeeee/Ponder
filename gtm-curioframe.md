@@ -1,16 +1,16 @@
 # Go-To-Market (GTM) Strategy
 
-**Project:** CurioFrame — Living Portraits that teach through voice and visual story
+**Project:** Ponder — Living Portraits that teach through voice and visual story
 **Date:** 2026-07-18
 **Version:** 0.1
 **Owner:** earlc [TBD — confirm]
-**PRD:** [prd-curioframe.md](prd-curioframe.md)
+**PRD:** [prd-Ponder.md](prd-Ponder.md)
 
 ---
 
 ## 1. Product Summary (GTM View)
 
-**What it does (one sentence):** CurioFrame turns any photo into a speaking character that teaches you through voice conversation and auto-generated story slides.
+**What it does (one sentence):** Ponder turns any photo into a speaking character that teaches you through voice conversation and auto-generated story slides.
 
 **Who it's for:** Curious learners, museum visitors, and parents who want exhibits to answer back — not just display a plaque.
 
@@ -54,7 +54,7 @@
 **Tagline:** `"Point. Capture. Learn."`
 
 **Primary message (landing page hero):**
-Museums show you art. CurioFrame lets you talk to it. Photograph any painting, statue, landmark, or object — and it comes alive in character, answering your questions out loud while visual story slides illustrate what it's teaching. Learning finally feels like a conversation, not a lecture.
+Museums show you art. Ponder lets you talk to it. Photograph any painting, statue, landmark, or object — and it comes alive in character, answering your questions out loud while visual story slides illustrate what it's teaching. Learning finally feels like a conversation, not a lecture.
 
 **Proof points:**
 - Built on OpenAI Realtime vision + voice for natural dialogue
@@ -80,7 +80,7 @@ Museums show you art. CurioFrame lets you talk to it. Photograph any painting, s
 |---------|---------------|----------------|
 | TikTok / Reels | TBD | "Mona Lisa answers my kid" demo series |
 | X / Twitter | TBD | Build-in-public hackathon thread |
-| Landing site curioframe.app [TBD — confirm] | — | Demo video + waitlist → store links |
+| Landing site Ponder.app [TBD — confirm] | — | Demo video + waitlist → store links |
 
 **Community / earned channels:**
 
@@ -97,7 +97,7 @@ Museums show you art. CurioFrame lets you talk to it. Photograph any painting, s
 - [ ] Demo video (45 sec) — capture Mona Lisa poster → awaken → voice Q → slides
 - [ ] App Store screenshots (5) — Capture, Awaken, Talk, Slides, History
 - [ ] Store description copy (short + long)
-- [ ] Landing page — see [plan-website-curioframe.md](plan-website-curioframe.md)
+- [ ] Landing page — see [plan-website-Ponder.md](plan-website-Ponder.md)
 - [ ] Product Hunt listing + first comment
 - [ ] Reddit post copy (2 variants)
 
@@ -140,10 +140,10 @@ Museums show you art. CurioFrame lets you talk to it. Photograph any painting, s
 ---
 
 *Full FMD suite complete. Document index:*
-- *[BRD](brd-curioframe.md) — Why build this*
-- *[PRD](prd-curioframe.md) — What to build*
-- *[DSD](dsd-curioframe.md) — How it looks*
-- *[SDD](sdd-curioframe.md) — How it's built*
-- *[RFC](rfc-curioframe-living-portrait-engine.md) — Living Portrait engine*
-- *[QAD](qad-curioframe.md) — How we test it*
-- *[GTM](gtm-curioframe.md) — How we launch it*
+- *[BRD](brd-Ponder.md) — Why build this*
+- *[PRD](prd-Ponder.md) — What to build*
+- *[DSD](dsd-Ponder.md) — How it looks*
+- *[SDD](sdd-Ponder.md) — How it's built*
+- *[RFC](rfc-Ponder-living-portrait-engine.md) — Living Portrait engine*
+- *[QAD](qad-Ponder.md) — How we test it*
+- *[GTM](gtm-Ponder.md) — How we launch it*

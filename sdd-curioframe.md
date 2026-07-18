@@ -1,10 +1,10 @@
 # System Design Document (SDD)
 
-**Project:** CurioFrame — Living Portraits that teach through voice and visual story
+**Project:** Ponder — Living Portraits that teach through voice and visual story
 **Date:** 2026-07-18
 **Version:** 0.1
 **Owner:** earlc [TBD — confirm]
-**PRD:** [prd-curioframe.md](prd-curioframe.md)
+**PRD:** [prd-Ponder.md](prd-Ponder.md)
 
 ---
 
@@ -252,4 +252,4 @@ slides
 
 ---
 
-*Next document: [RFC — living portrait engine](rfc-curioframe-living-portrait-engine.md)*
+*Next document: [RFC — living portrait engine](rfc-Ponder-living-portrait-engine.md)*

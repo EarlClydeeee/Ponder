@@ -1,4 +1,4 @@
-# Website Plan — CurioFrame Landing Page
+# Website Plan — Ponder Landing Page
 
 **Type:** Single-page informational website
 **Framework:** Next.js 15 (App Router, static export)
@@ -12,7 +12,7 @@
 - **One job:** Get the visitor to imagine interviewing a painting — then tap Download.
 - **Narrative first:** Hook (Mona Lisa speaks) → problem (passive museums) → solution (voice + slides) → proof → CTA.
 - **No clutter:** No blog, pricing page, or login. Single scroll.
-- **Brand exact:** Gallery dark `#0F0E0C`, gold `#C9A227`, Fraunces + Inter from [dsd-curioframe.md](dsd-curioframe.md).
+- **Brand exact:** Gallery dark `#0F0E0C`, gold `#C9A227`, Fraunces + Inter from [dsd-Ponder.md](dsd-Ponder.md).
 
 ---
 
@@ -55,7 +55,7 @@ website/
 ## Page Sections — Content & Design Spec
 
 ### 1. Navbar
-**Left:** CurioFrame wordmark — Fraunces, gold
+**Left:** Ponder wordmark — Fraunces, gold
 **Right:** "Download Free" → `#cta`
 
 ### 2. Hero Section
@@ -64,7 +64,7 @@ website/
 > you photograph.
 
 **Subheadline:**
-> CurioFrame brings paintings, statues, landmarks, and everyday objects to life. Ask questions by voice. Watch story slides appear as they teach.
+> Ponder brings paintings, statues, landmarks, and everyday objects to life. Ask questions by voice. Watch story slides appear as they teach.
 
 **CTA:** App Store + Google Play badges
 **Mockup:** Conversation screen — Mona Lisa frame + slide carousel
@@ -95,7 +95,7 @@ website/
 **CTA:** Store badges — "Free · 3 sessions/day"
 
 ### 8. Footer
-Privacy · Contact · © 2026 CurioFrame
+Privacy · Contact · © 2026 Ponder
 
 ---
 
@@ -121,7 +121,7 @@ Privacy · Contact · © 2026 CurioFrame
 
 ```ts
 export const metadata = {
-  title: 'CurioFrame — Point. Capture. Learn.',
+  title: 'Ponder — Point. Capture. Learn.',
   description: 'Turn any photo into a Living Portrait that talks, teaches, and shows visual story slides. Interview the Mona Lisa. Ask a landmark its history.',
   openGraph: { images: ['/og-image.png'] },
 }
@@ -145,4 +145,4 @@ Not a blog, docs site, waitlist form, or dashboard. One page. One scroll. Downlo
 
 ---
 
-*Related: [gtm-curioframe.md](gtm-curioframe.md) · [dsd-curioframe.md](dsd-curioframe.md)*
+*Related: [gtm-Ponder.md](gtm-Ponder.md) · [dsd-Ponder.md](dsd-Ponder.md)*

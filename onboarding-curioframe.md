@@ -1,8 +1,8 @@
-# Onboarding Strategy & Flow: CurioFrame First Portrait Experience (ONBOARDING.md)
+# Onboarding Strategy & Flow: Ponder First Portrait Experience (ONBOARDING.md)
 
 ## 1. The Strategy: One Magic Demo Before the Museum
 
-CurioFrame's onboarding must deliver the "Living Portrait" moment before asking for camera access in a crowded place. New users are skeptical of AI hype and cautious about mic permissions. The flow uses a **2-Question Pivot + Instant Demo**: two quick preference taps, then a bundled Mona Lisa portrait awakens and answers one scripted question — so users feel wonder before friction. Camera and mic permissions are requested only after the demo proves value.
+Ponder's onboarding must deliver the "Living Portrait" moment before asking for camera access in a crowded place. New users are skeptical of AI hype and cautious about mic permissions. The flow uses a **2-Question Pivot + Instant Demo**: two quick preference taps, then a bundled Mona Lisa portrait awakens and answers one scripted question — so users feel wonder before friction. Camera and mic permissions are requested only after the demo proves value.
 
 ---
 
@@ -19,7 +19,7 @@ CurioFrame's onboarding must deliver the "Living Portrait" moment before asking 
     * *UI Impact:* Portrait larger; slides appear only when user asks "show me."
     * *Product Impact:* `preferSlides: false`; agent tool calls only on explicit visual cues.
 
-### Question 2: Where You'll Use CurioFrame
+### Question 2: Where You'll Use Ponder
 * **Prompt:** "Where will you use this most?"
 * **Choice A: Museum or gallery.**
     * *Logic:* Quiet environment; headphones likely.
@@ -42,7 +42,7 @@ CurioFrame's onboarding must deliver the "Living Portrait" moment before asking 
 
 | Step | User Interaction | Visual/Hero State | UI Palette |
 | :--- | :--- | :--- | :--- |
-| **0. Welcome** | App Launch | CurioFrame logo + gold frame animation | Gallery dark |
+| **0. Welcome** | App Launch | Ponder logo + gold frame animation | Gallery dark |
 | **1. Learning Style** | Selects visual or dialogue | Portrait frame empty, shimmer | Gold accent |
 | **2. Use Context** | Selects museum/home/everywhere | Map icons fade in | Muted + gold |
 | **3. Demo Portrait** | Taps "Who are you?" chip | Mona Lisa awakens, speaks, slides appear | Full expressive |
@@ -75,4 +75,4 @@ CurioFrame's onboarding must deliver the "Living Portrait" moment before asking 
 
 ---
 
-*Related: [prd-curioframe.md](prd-curioframe.md) US-05 · [dsd-curioframe.md](dsd-curioframe.md)*
+*Related: [prd-Ponder.md](prd-Ponder.md) US-05 · [dsd-Ponder.md](dsd-Ponder.md)*

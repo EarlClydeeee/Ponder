@@ -4,9 +4,9 @@
 **Date:** 2026-07-18
 **Author:** earlc [TBD — confirm]
 **Status:** `Draft`
-**PRD Reference:** [prd-curioframe.md §7 — AI specs, US-01–04](prd-curioframe.md)
-**SDD Reference:** [sdd-curioframe.md §8 — AI architecture](sdd-curioframe.md)
-**RFC ID:** `curioframe-rfc-001`
+**PRD Reference:** [prd-Ponder.md §7 — AI specs, US-01–04](prd-Ponder.md)
+**SDD Reference:** [sdd-Ponder.md §8 — AI architecture](sdd-Ponder.md)
+**RFC ID:** `Ponder-rfc-001`
 
 ---
 
@@ -14,7 +14,7 @@
 
 **The problem this solves:**
 
-CurioFrame's core magic — a photographed subject speaking in character while educational visuals appear — requires orchestrating three pipelines (vision persona, duplex audio, async image generation) without breaking conversational flow. This is ambiguous enough to specify: latency budgets, tool-call timing, portrait animation states, and failure modes must be defined before implementation.
+Ponder's core magic — a photographed subject speaking in character while educational visuals appear — requires orchestrating three pipelines (vision persona, duplex audio, async image generation) without breaking conversational flow. This is ambiguous enough to specify: latency budgets, tool-call timing, portrait animation states, and failure modes must be defined before implementation.
 
 **Reference in PRD/SDD:**
 
@@ -245,4 +245,4 @@ Never break character. If unsure, say what historians believe and invite another
 
 ---
 
-*Next document: [QAD](qad-curioframe.md)*
+*Next document: [QAD](qad-Ponder.md)*

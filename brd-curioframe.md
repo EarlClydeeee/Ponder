@@ -1,6 +1,6 @@
 # Business Requirements Document (BRD)
 
-**Project:** CurioFrame — Living Portraits that teach through voice and visual story
+**Project:** Ponder — Living Portraits that teach through voice and visual story
 **Date:** 2026-07-18
 **Version:** 0.1
 **Owner:** earlc [TBD — confirm]
@@ -10,7 +10,7 @@
 
 ## 1. Executive Summary
 
-CurioFrame is a mobile app that turns any photo into an educational conversation partner. A user points their camera at a painting, statue, landmark, product, or pet, captures a snapshot, and the subject comes alive with an in-character voice to answer questions. While explaining, the app generates sequential visual slides that illustrate what the portrait is talking about — history, context, science, or craft — so learning stays conversational and fun. The product exists because museum plaques, static Wikipedia pages, and generic chatbots fail curious learners who want to ask follow-up questions about the thing in front of them right now.
+Ponder is a mobile app that turns any photo into an educational conversation partner. A user points their camera at a painting, statue, landmark, product, or pet, captures a snapshot, and the subject comes alive with an in-character voice to answer questions. While explaining, the app generates sequential visual slides that illustrate what the portrait is talking about — history, context, science, or craft — so learning stays conversational and fun. The product exists because museum plaques, static Wikipedia pages, and generic chatbots fail curious learners who want to ask follow-up questions about the thing in front of them right now.
 
 ---
 
@@ -37,7 +37,7 @@ Secondary: **Leo, 22, design student** who photographs products and architecture
 **Primary OKR (12 months):** Achieve ≥20% D30 retention among users who complete at least one full portrait conversation (≥3 voice turns + ≥1 generated slide deck) within their first session.
 
 **Secondary goals:**
-- Establish CurioFrame as the default "point and learn" demo in hackathon and ed-tech circles (Living Portrait category).
+- Establish Ponder as the default "point and learn" demo in hackathon and ed-tech circles (Living Portrait category).
 - Build a library of saved portrait sessions users return to (foundation for Pro tier).
 - Validate freemium conversion via session limits and saved-history paywall.
 
@@ -102,4 +102,4 @@ Secondary: **Leo, 22, design student** who photographs products and architecture
 
 ---
 
-*Next document: [PRD](prd-curioframe.md)*
+*Next document: [PRD](prd-Ponder.md)*

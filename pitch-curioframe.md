@@ -1,6 +1,6 @@
 # Pitch Document
 
-**Project:** CurioFrame — Living Portraits that teach through voice and visual story
+**Project:** Ponder — Living Portraits that teach through voice and visual story
 **Date:** 2026-07-18
 **Version:** 0.1
 **Owner:** earlc [TBD — confirm]
@@ -29,7 +29,7 @@
 
 ## 3. Solution
 
-**What it does:** CurioFrame captures a photo of any subject — artwork, statue, landmark, product, pet — and awakens it as a Living Portrait. The subject speaks in a thematically matched voice, answers follow-up questions in real time, and generates sequential visual slides that illustrate its explanations. It's a conversation with what you're looking at, not a lecture about it.
+**What it does:** Ponder captures a photo of any subject — artwork, statue, landmark, product, pet — and awakens it as a Living Portrait. The subject speaks in a thematically matched voice, answers follow-up questions in real time, and generates sequential visual slides that illustrate its explanations. It's a conversation with what you're looking at, not a lecture about it.
 
 **The differentiator:** The photo stays alive on screen, speaks in character, and auto-generates educational visuals mid-conversation — no other consumer app combines Realtime vision-voice with on-the-fly story slides bound to a user capture.
 
@@ -62,7 +62,7 @@
 
 **Platform:** iOS + Android (Expo) first — camera + mic + museum context
 
-**Tech approach:** Expo client + Supabase + OpenAI Realtime (vision/voice) + image API for slides; details in [sdd-curioframe.md](sdd-curioframe.md).
+**Tech approach:** Expo client + Supabase + OpenAI Realtime (vision/voice) + image API for slides; details in [sdd-Ponder.md](sdd-Ponder.md).
 
 ---
 
@@ -118,7 +118,7 @@ Pre-launch. Forward milestones:
 
 **Growth loop:** Share clips (portrait + voice + slide) → viewers ask "what app?" → download
 
-Full plan: [gtm-curioframe.md](gtm-curioframe.md)
+Full plan: [gtm-Ponder.md](gtm-Ponder.md)
 
 ---
 
@@ -159,6 +159,6 @@ Full plan: [gtm-curioframe.md](gtm-curioframe.md)
 ---
 
 *Related documents:*
-- *[BRD](brd-curioframe.md) — Business case and scope*
-- *[GTM](gtm-curioframe.md) — Full launch strategy*
-- *[PRD](prd-curioframe.md) — Feature detail*
+- *[BRD](brd-Ponder.md) — Business case and scope*
+- *[GTM](gtm-Ponder.md) — Full launch strategy*
+- *[PRD](prd-Ponder.md) — Feature detail*
