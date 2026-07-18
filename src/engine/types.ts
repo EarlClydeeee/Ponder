@@ -37,6 +37,12 @@ export interface PersonaConfig {
 export type AwakenResult = {
   subjectLabel: string;
   subjectType: "artwork" | "portrait" | "object" | "animal" | "unknown";
+  /** Primary subject rectangle, normalized to the captured photo (0–1). */
+  subjectBounds: { x: number; y: number; width: number; height: number };
+  /** Whether a CSS face should be added to this capture. */
+  faceMode: "native_face" | "suggested_face" | "uncertain";
+  /** Vision-selected placement for a generated CSS face. */
+  facePlacement?: { x: number; y: number; scale: number; rotation: number };
   personaName: string;
   personaTone: string;
   greeting: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { PortraitFrame } from "@/components/app/PortraitFrame";
 import type { AwakenResult, PortraitPhase } from "@/src/engine/types";
@@ -15,6 +16,39 @@ type CameraState =
   | "awake"
   | "error";
 
+type SubjectBounds = AwakenResult["subjectBounds"];
+
+interface OpenCvMat {
+  delete(): void;
+}
+
+interface OpenCvMatVector extends OpenCvMat {
+  size(): number;
+  get(index: number): OpenCvMat;
+}
+
+interface OpenCvModule {
+  onRuntimeInitialized?: () => void;
+  Mat: new () => OpenCvMat;
+  MatVector: new () => OpenCvMatVector;
+  imread(source: HTMLCanvasElement): OpenCvMat;
+  cvtColor(source: OpenCvMat, target: OpenCvMat, conversion: number): void;
+  GaussianBlur(source: OpenCvMat, target: OpenCvMat, size: unknown, sigmaX: number, sigmaY: number): void;
+  Canny(source: OpenCvMat, target: OpenCvMat, threshold1: number, threshold2: number): void;
+  findContours(image: OpenCvMat, contours: OpenCvMatVector, hierarchy: OpenCvMat, mode: number, method: number): void;
+  boundingRect(contour: OpenCvMat): { x: number; y: number; width: number; height: number };
+  Size: new (width: number, height: number) => unknown;
+  COLOR_RGBA2GRAY: number;
+  RETR_EXTERNAL: number;
+  CHAIN_APPROX_SIMPLE: number;
+}
+
+declare global {
+  interface Window {
+    cv?: OpenCvModule;
+  }
+}
+
 function portraitPhase(cameraState: CameraState): PortraitPhase {
   if (cameraState === "analyzing") return "analyzing";
   if (cameraState === "awakening") return "connecting";
@@ -26,10 +60,13 @@ function portraitPhase(cameraState: CameraState): PortraitPhase {
 export default function CameraTestPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const captureCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [cameraState, setCameraState] = useState<CameraState>("ready");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [awakenResult, setAwakenResult] = useState<AwakenResult | null>(null);
+  const [openCvReady, setOpenCvReady] = useState(false);
+  const [objectBounds, setObjectBounds] = useState<SubjectBounds | null>(null);
   const awakenTimerRef = useRef<number | null>(null);
 
   function stopCamera() {
@@ -45,6 +82,14 @@ export default function CameraTestPage() {
     },
     [],
   );
+
+  useEffect(() => {
+    if (openCvReady && captureCanvasRef.current) {
+      setObjectBounds(findObjectBounds(captureCanvasRef.current));
+    }
+    // findObjectBounds intentionally reads the latest OpenCV runtime from window.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openCvReady, photoUrl]);
 
   async function startCamera() {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -89,6 +134,8 @@ export default function CameraTestPage() {
     canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     setPhotoUrl(canvas.toDataURL("image/jpeg", 0.9));
+    captureCanvasRef.current = canvas;
+    setObjectBounds(findObjectBounds(canvas));
     stopCamera();
     setCameraState("captured");
   }
@@ -96,6 +143,8 @@ export default function CameraTestPage() {
   function retakePhoto() {
     setPhotoUrl(null);
     setAwakenResult(null);
+    setObjectBounds(null);
+    captureCanvasRef.current = null;
     setErrorMessage(null);
     void startCamera();
   }
@@ -115,7 +164,21 @@ export default function CameraTestPage() {
       if (!response.ok) throw new Error("Portrait analysis failed");
 
       const result = (await response.json()) as AwakenResult;
-      setAwakenResult(result);
+      const subjectBounds = objectBounds ?? result.subjectBounds;
+      setAwakenResult({
+        ...result,
+        subjectBounds,
+        ...(result.faceMode === "suggested_face"
+          ? {
+              facePlacement: {
+                x: subjectBounds.x + subjectBounds.width / 2,
+                y: subjectBounds.y + subjectBounds.height * 0.44,
+                scale: Math.min(1.2, Math.max(0.45, Math.min(subjectBounds.width, subjectBounds.height) * 1.5)),
+                rotation: 0,
+              },
+            }
+          : {}),
+      });
       setCameraState("awakening");
       awakenTimerRef.current = window.setTimeout(() => {
         setCameraState("awake");
@@ -140,8 +203,79 @@ export default function CameraTestPage() {
             : "Awake"
           : errorMessage ?? undefined;
 
+  function findObjectBounds(canvas: HTMLCanvasElement): SubjectBounds | null {
+    const cv = window.cv;
+    if (!openCvReady || !cv) return null;
+
+    const source = cv.imread(canvas);
+    const gray = new cv.Mat();
+    const edges = new cv.Mat();
+    const contours = new cv.MatVector();
+    const hierarchy = new cv.Mat();
+
+    try {
+      cv.cvtColor(source, gray, cv.COLOR_RGBA2GRAY);
+      cv.GaussianBlur(gray, gray, new cv.Size(5, 5), 0, 0);
+      cv.Canny(gray, edges, 50, 150);
+      cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+      const imageArea = canvas.width * canvas.height;
+      let best: { x: number; y: number; width: number; height: number; score: number } | null = null;
+      for (let index = 0; index < contours.size(); index += 1) {
+        const contour = contours.get(index);
+        const rect = cv.boundingRect(contour);
+        contour.delete();
+        const area = rect.width * rect.height;
+        const touchesImageEdge =
+          rect.x <= 2 ||
+          rect.y <= 2 ||
+          rect.x + rect.width >= canvas.width - 2 ||
+          rect.y + rect.height >= canvas.height - 2;
+        if (touchesImageEdge) continue;
+        const centerDistance = Math.hypot(
+          rect.x + rect.width / 2 - canvas.width / 2,
+          rect.y + rect.height / 2 - canvas.height / 2,
+        );
+        const score = area - centerDistance * Math.min(canvas.width, canvas.height) * 0.2;
+        if (area > imageArea * 0.04 && (!best || score > best.score)) {
+          best = { ...rect, score };
+        }
+      }
+
+      return best
+        ? {
+            x: best.x / canvas.width,
+            y: best.y / canvas.height,
+            width: best.width / canvas.width,
+            height: best.height / canvas.height,
+          }
+        : null;
+    } catch {
+      return null;
+    } finally {
+      source.delete();
+      gray.delete();
+      edges.delete();
+      contours.delete();
+      hierarchy.delete();
+    }
+  }
+
   return (
     <main className="min-h-dvh bg-[var(--color-bg)] px-5 py-5 text-[var(--color-text)]">
+      <Script
+        src="https://docs.opencv.org/4.x/opencv.js"
+        strategy="afterInteractive"
+        onLoad={() => {
+          const cv = window.cv;
+          if (!cv) return;
+          if (cv.Mat) {
+            setOpenCvReady(true);
+          } else {
+            cv.onRuntimeInitialized = () => setOpenCvReady(true);
+          }
+        }}
+      />
       <div className="mx-auto flex min-h-[calc(100dvh-40px)] w-full max-w-[390px] flex-col">
         <header className="flex items-center justify-between">
           <a

@@ -36,6 +36,14 @@ body {
   0%, 100% { opacity: 0.1; transform: translateX(-12%); }
   50% { opacity: 0.34; transform: translateX(12%); }
 }
+@keyframes living-face-blink {
+  0%, 43%, 47%, 100% { transform: scaleY(1); }
+  45% { transform: scaleY(0.12); }
+}
+@keyframes living-face-smile {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(1.15) scaleY(0.8); }
+}
 
 .animate-breathe { animation: breathe 3000ms ease-in-out infinite; }
 .animate-awaken { animation: awaken-ring 400ms ease-out; }
@@ -51,6 +59,10 @@ body {
   background: linear-gradient(115deg, transparent 34%, var(--color-honey-100) 50%, transparent 66%);
   animation: portrait-light 6000ms ease-in-out infinite;
 }
+.living-face { display: flex; flex-direction: column; align-items: center; gap: 8px; filter: drop-shadow(0 2px 8px var(--color-honey-border)); }
+.living-face__eyes { display: flex; gap: 16px; }
+.living-face__eyes span { width: calc(var(--living-face-size) * 0.28); height: calc(var(--living-face-size) * 0.36); border: 3px solid var(--color-honey-500); border-radius: var(--radius-full); background: var(--color-dark-900); animation: living-face-blink 4500ms ease-in-out infinite; }
+.living-face__smile { width: calc(var(--living-face-size) * 0.5); height: calc(var(--living-face-size) * 0.22); border-right: 3px solid var(--color-honey-500); border-bottom: 3px solid var(--color-honey-500); border-left: 3px solid var(--color-honey-500); border-radius: 0 0 var(--radius-full) var(--radius-full); animation: living-face-smile 1600ms ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-breathe,
@@ -61,5 +73,7 @@ body {
   .portrait-image--parallax,
   .portrait-image--blink,
   .portrait-image--ambient,
-  .portrait-light-overlay { animation: none; }
+  .portrait-light-overlay,
+  .living-face__eyes span,
+  .living-face__smile { animation: none; }
 }
