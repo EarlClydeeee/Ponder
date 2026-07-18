@@ -4,13 +4,20 @@
  * Owner: Ivy.
  */
 import Image from "next/image";
-import type { PortraitPhase } from "@/src/engine/types";
+import type { AwakenResult, PortraitPhase } from "@/src/engine/types";
 
 interface Props {
   photoUrl: string | null;
   phase: PortraitPhase;
   subjectLabel: string;
   amplitude: number;
+  /** Optional pre-pass copy for the isolated capture-to-awaken flow. */
+  awakenResult?: Pick<
+    AwakenResult,
+    "personaName" | "greeting" | "animationStyle"
+  > | null;
+  /** Overrides the engine phase label while the camera harness is awakening. */
+  status?: string;
 }
 
 const STATE_LABEL: Partial<Record<PortraitPhase, string>> = {
@@ -26,10 +33,15 @@ export function PortraitFrame({
   phase,
   subjectLabel,
   amplitude,
+  awakenResult,
+  status,
 }: Props) {
   const alive = phase !== "idle" && phase !== "analyzing";
   const awakening = phase === "connecting" || phase === "analyzing";
   const glow = phase === "speaking" ? 0.25 + amplitude * 0.6 : 0;
+  const statusLabel = status ?? STATE_LABEL[phase];
+  const animationStyle = awakenResult?.animationStyle ?? "parallax";
+  const useAwakenPresentation = Boolean(awakenResult);
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -39,13 +51,12 @@ export function PortraitFrame({
         } ${awakening ? "animate-shimmer" : ""}`}
         style={{
           boxShadow: glow
-            ? `0 0 ${16 + glow * 40}px rgba(201,162,39,${glow})`
+            ? `0 0 ${16 + glow * 40}px var(--color-honey-border)`
             : "var(--shadow-md)",
         }}
-        role="img"
         aria-label={
           subjectLabel
-            ? `${subjectLabel}${STATE_LABEL[phase] ? ` — ${STATE_LABEL[phase]}` : ""}`
+            ? `${subjectLabel}${statusLabel ? ` — ${statusLabel}` : ""}`
             : "Living portrait"
         }
       >
@@ -55,18 +66,31 @@ export function PortraitFrame({
             alt={subjectLabel || "Portrait"}
             fill
             unoptimized
-            className="object-cover"
+            className={`object-cover ${alive && useAwakenPresentation ? `portrait-image portrait-image--${animationStyle}` : ""}`}
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-[var(--color-surface)] text-[var(--color-muted)]">
             No portrait yet
           </div>
         )}
+        {alive && useAwakenPresentation && (
+          <div className="pointer-events-none portrait-light-overlay" aria-hidden="true" />
+        )}
       </div>
-      {STATE_LABEL[phase] && (
-        <p className="text-[13px] font-medium text-[var(--color-accent)]">
-          {STATE_LABEL[phase]}
+      {statusLabel && (
+        <p aria-live="polite" className="text-[13px] font-medium text-[var(--color-accent)]">
+          {statusLabel}
         </p>
+      )}
+      {awakenResult && (
+        <div className="w-full rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-center shadow-[var(--shadow-sm)]">
+          <p className="text-[13px] font-semibold text-[var(--color-primary)]">
+            {awakenResult.personaName}
+          </p>
+          <p className="mt-1 text-sm leading-5 text-[var(--color-text)]">
+            {awakenResult.greeting}
+          </p>
+        </div>
       )}
     </div>
   );

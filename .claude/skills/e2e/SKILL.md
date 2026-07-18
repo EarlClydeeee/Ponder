@@ -4,7 +4,7 @@ description: >-
   Drive the Ponder web app in a real browser via the Playwright MCP server to
   smoke-test the core flows. Use when asked to E2E test, browser-test, smoke
   test, or "click through" the app, verify the /app mobile shell, or reproduce a
-  QAD scenario (H-01..H-07, S-01..S-10). Requires the `playwright` MCP server
+  QAD scenario (H-01..H-07, S-01..S-10, H-V01..H-V02, S-V01). Requires the `playwright` MCP server
   (see .mcp.json) and a running dev server.
 argument-hint: "[scenario e.g. H-02 or 'demo path']"
 ---
@@ -64,6 +64,16 @@ Voice needs mic permission and a WebRTC connection — Playwright can grant
 button enables/pulses and that `/api/realtime-token` returns 200 (watch the
 network / console), not to validate audio. Drive conversation via the question
 chips and text input instead.
+
+## 4b. Voice Agent test harness (QAD H-V01/H-V02/S-V01)
+
+- `browser_navigate` to `http://localhost:3000/test/speech-to-speech`.
+- `browser_snapshot` — confirm **Push-to-talk voice agent** setup and preset list.
+- `browser_click` **Start conversation** (requires `OPENAI_API_KEY`).
+- Without a live key, expect connect failure → error or fallback UI; with a key,
+  confirm transcript area and Talk button appear (H-V01 shape).
+- For S-V01, simulate disconnect via DevTools / blocked network and confirm
+  **Voice unavailable — type to continue** banner and text input.
 
 ## 5. Report
 

@@ -82,6 +82,16 @@ npx playwright test --project=chromium
 | S-09 | Network drop mid-analyze | Airplane mode during persona pre-pass | Retry prompt; no duplicate sessions |
 | S-10 | Inappropriate question | Offensive prompt | In-character refusal; no slides |
 
+### Voice Agent test harness (`/test/speech-to-speech`)
+
+See [rfc-voice-agent.md](rfc-voice-agent.md).
+
+| ID | Scenario | Steps | Expected Result |
+|----|----------|-------|-----------------|
+| H-V01 | Connect + greeting | Open `/test/speech-to-speech` → pick preset → Start | Greeting audio + assistant transcript within 3s |
+| H-V02 | PTT round-trip | Hold talk → speak → release | Assistant audio + transcript within 2s of release |
+| S-V01 | Realtime disconnect | Kill WebRTC mid-session | `fallback_text` banner; text input works via `/api/chat` within 3s |
+
 ---
 
 ## 4. Automation vs. Manual Testing

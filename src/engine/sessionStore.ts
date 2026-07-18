@@ -5,12 +5,10 @@
 import type { SlideDeck, StoredSession, TranscriptTurn } from "./types";
 
 const SESSIONS_KEY = "ponder.sessions";
-const USAGE_KEY = "ponder.usage";
 const PREFS_KEY = "ponder.prefs";
 
-/** Free tier: last 5 sessions kept; doubles as the localStorage budget cap. */
+/** Last 5 sessions kept; localStorage budget cap. */
 const MAX_SESSIONS = 5;
-export const DAILY_FREE_SESSIONS = 3;
 
 export interface Prefs {
   preferSlides: boolean;
@@ -52,10 +50,6 @@ function writeJson(key: string, value: unknown): void {
   }
 }
 
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export const sessionStore = {
   list(): StoredSession[] {
     return readJson<StoredSession[]>(SESSIONS_KEY, []);
@@ -91,18 +85,6 @@ export const sessionStore = {
     this.save({ ...session, decks: [...rest, deck] });
   },
 
-  usageToday(): number {
-    const usage = readJson<{ date: string; count: number }>(USAGE_KEY, {
-      date: today(),
-      count: 0,
-    });
-    return usage.date === today() ? usage.count : 0;
-  },
-
-  incrementUsage(): void {
-    writeJson(USAGE_KEY, { date: today(), count: this.usageToday() + 1 });
-  },
-
   getPrefs(): Prefs | null {
     return readJson<Prefs | null>(PREFS_KEY, null);
   },
@@ -115,7 +97,7 @@ export const sessionStore = {
   clearAll(): void {
     if (!isBrowser()) return;
     window.localStorage.removeItem(SESSIONS_KEY);
-    window.localStorage.removeItem(USAGE_KEY);
+    window.localStorage.removeItem("ponder.usage");
     window.localStorage.removeItem(PREFS_KEY);
   },
 };

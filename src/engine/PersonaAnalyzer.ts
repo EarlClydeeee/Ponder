@@ -2,7 +2,12 @@
  * Vision pre-pass: photo → PersonaConfig via /api/analyze-portrait.
  * Owner: David (contract), Shello (route).
  */
-import type { AwakenConfig, PersonaConfig } from "./types";
+import type {
+  AnalyzePortraitResponse,
+  AwakenConfig,
+  PersonaConfig,
+  RealtimeVoice,
+} from "./types";
 
 /** Canned persona so the demo works with zero network (RFC §7, onboarding demo). */
 const DEMO_PERSONAS: Record<string, PersonaConfig> = {
@@ -40,5 +45,19 @@ export async function analyzePortrait(
   if (!res.ok) {
     throw new Error(`analyze-portrait failed: ${res.status}`);
   }
-  return (await res.json()) as PersonaConfig;
+  const result = (await res.json()) as AnalyzePortraitResponse;
+  return {
+    subjectLabel: result.subjectLabel,
+    voice: voiceForTone(result.personaTone),
+    systemPrompt: buildSystemPrompt(result.subjectLabel),
+    styleHint: `${result.animationStyle} portrait treatment`,
+  };
+}
+
+function voiceForTone(tone: string): RealtimeVoice {
+  const normalizedTone = tone.toLowerCase();
+  if (normalizedTone.includes("playful") || normalizedTone.includes("cheerful")) return "shimmer";
+  if (normalizedTone.includes("warm") || normalizedTone.includes("gentle")) return "coral";
+  if (normalizedTone.includes("mysterious") || normalizedTone.includes("measured")) return "sage";
+  return "alloy";
 }

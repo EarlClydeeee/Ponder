@@ -28,17 +28,38 @@ body {
   0%, 100% { border-color: var(--border-default); }
   50% { border-color: var(--accent-glow); }
 }
+@keyframes portrait-parallax {
+  0%, 100% { transform: scale(1.015) translate3d(-0.35%, -0.25%, 0); }
+  50% { transform: scale(1.035) translate3d(0.35%, 0.25%, 0); }
+}
+@keyframes portrait-light {
+  0%, 100% { opacity: 0.1; transform: translateX(-12%); }
+  50% { opacity: 0.34; transform: translateX(12%); }
+}
 
 .animate-breathe { animation: breathe 3000ms ease-in-out infinite; }
 .animate-awaken { animation: awaken-ring 400ms ease-out; }
 .animate-talk-pulse { animation: talk-pulse 1200ms ease-in-out infinite; }
 .animate-slide-enter { animation: slide-enter 350ms cubic-bezier(0.34, 1.56, 0.64, 1); }
 .animate-shimmer { animation: shimmer 1500ms ease-in-out infinite; }
+.portrait-image--parallax { animation: portrait-parallax 7000ms ease-in-out infinite; }
+.portrait-image--blink { animation: portrait-parallax 9000ms ease-in-out infinite; }
+.portrait-image--ambient { animation: portrait-parallax 11000ms ease-in-out infinite; }
+.portrait-light-overlay {
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(115deg, transparent 34%, var(--color-honey-100) 50%, transparent 66%);
+  animation: portrait-light 6000ms ease-in-out infinite;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .animate-breathe,
   .animate-awaken,
   .animate-talk-pulse,
   .animate-slide-enter,
-  .animate-shimmer { animation: none; }
+  .animate-shimmer,
+  .portrait-image--parallax,
+  .portrait-image--blink,
+  .portrait-image--ambient,
+  .portrait-light-overlay { animation: none; }
 }

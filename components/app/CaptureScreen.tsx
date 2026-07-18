@@ -82,7 +82,7 @@ export function CaptureScreen({
           className="hidden"
         />
         <p className="text-[13px] text-[var(--color-muted)]">
-          Free · 3 sessions/day · no install
+          Free · no install
         </p>
       </div>
     </div>
