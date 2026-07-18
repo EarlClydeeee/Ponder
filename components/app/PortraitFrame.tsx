@@ -129,12 +129,17 @@ function LivingFace({
         top: `${placement.y * 100}%`,
         transform: `translate(-50%, -50%) rotate(${placement.rotation}deg)`,
         "--living-face-size": `${48 * placement.scale}px`,
-        "--living-face-mouth": talking ? Math.min(1, amplitude * 1.8) : 0,
+        "--living-face-mouth": talking ? Math.min(1, 0.15 + amplitude * 2.2) : 0,
       } as CSSProperties}
     >
       <div className={`living-face ${talking ? "living-face--talking" : ""}`}>
-        <div className="living-face__eyes"><span /><span /></div>
-        <span className="living-face__smile" />
+        <span className="living-face__glow" />
+        <div className="living-face__brows"><span /><span /></div>
+        <div className="living-face__eyes">
+          <span className="living-face__eye"><i className="living-face__pupil" /></span>
+          <span className="living-face__eye"><i className="living-face__pupil" /></span>
+        </div>
+        <span className="living-face__mouth"><i className="living-face__tongue" /></span>
       </div>
     </div>
   );

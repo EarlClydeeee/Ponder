@@ -38,11 +38,20 @@ body {
 }
 @keyframes living-face-blink {
   0%, 43%, 47%, 100% { transform: scaleY(1); }
-  45% { transform: scaleY(0.12); }
+  45% { transform: scaleY(0.1); }
 }
 @keyframes living-face-smile {
   0%, 100% { transform: scaleX(1); }
-  50% { transform: scaleX(1.15) scaleY(0.8); }
+  50% { transform: scaleX(1.12) scaleY(0.85); }
+}
+@keyframes living-face-gaze {
+  0%, 22%, 100% { transform: translate(0, 0); }
+  32%, 46% { transform: translate(22%, -8%); }
+  62%, 78% { transform: translate(-22%, 6%); }
+}
+@keyframes living-face-glow {
+  0%, 100% { opacity: 0.16; transform: scale(1); }
+  50% { opacity: 0.38; transform: scale(1.08); }
 }
 
 .animate-breathe { animation: breathe 3000ms ease-in-out infinite; }
@@ -59,20 +68,133 @@ body {
   background: linear-gradient(115deg, transparent 34%, var(--color-honey-100) 50%, transparent 66%);
   animation: portrait-light 6000ms ease-in-out infinite;
 }
-.living-face { display: flex; flex-direction: column; align-items: center; gap: 8px; filter: drop-shadow(0 2px 8px var(--color-honey-border)); }
-.living-face__eyes { display: flex; gap: 16px; }
-.living-face__eyes span { width: calc(var(--living-face-size) * 0.28); height: calc(var(--living-face-size) * 0.36); border: 3px solid var(--color-honey-500); border-radius: var(--radius-full); background: var(--color-dark-900); animation: living-face-blink 4500ms ease-in-out infinite; }
-.living-face__smile { width: calc(var(--living-face-size) * 0.5); height: calc(var(--living-face-size) * 0.22); border-right: 3px solid var(--color-honey-500); border-bottom: 3px solid var(--color-honey-500); border-left: 3px solid var(--color-honey-500); border-radius: 0 0 var(--radius-full) var(--radius-full); animation: living-face-smile 1600ms ease-in-out infinite; }
-/* Lip-sync: while speaking the smile becomes a mouth whose height follows the
-   voice amplitude (--living-face-mouth: 0..1, set inline by PortraitFrame). */
-.living-face--talking .living-face__smile {
-  animation: none;
-  background: var(--color-dark-900);
-  border: 3px solid var(--color-honey-500);
+/* Living face — landing-page idiom: warm honey glow, cartoon eyes, big
+   amplitude-driven mouth. --living-face-mouth (0..1) is set inline by
+   PortraitFrame from the live voice amplitude while the portrait speaks. */
+.living-face {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--living-face-size) * 0.13);
+  filter: drop-shadow(0 2px 10px var(--color-honey-border));
+  transition: transform 90ms ease-out;
+}
+.living-face--talking { transform: translateY(calc(var(--living-face-mouth, 0) * -3px)); }
+
+.living-face__glow {
+  position: absolute;
+  inset: -48%;
   border-radius: var(--radius-full);
-  width: calc(var(--living-face-size) * 0.44);
-  height: calc(var(--living-face-size) * (0.1 + 0.32 * var(--living-face-mouth, 0)));
-  transition: height 70ms linear;
+  background: radial-gradient(circle, var(--color-honey-border) 0 38%, transparent 72%);
+  animation: living-face-glow 3200ms ease-in-out infinite;
+  pointer-events: none;
+}
+.living-face--talking .living-face__glow {
+  animation: none;
+  opacity: calc(0.22 + var(--living-face-mouth, 0) * 0.6);
+}
+
+.living-face__brows { display: flex; gap: calc(var(--living-face-size) * 0.36); transition: transform 80ms ease-out; }
+.living-face__brows span {
+  width: calc(var(--living-face-size) * 0.26);
+  height: max(3px, calc(var(--living-face-size) * 0.07));
+  border-radius: var(--radius-full);
+  background: var(--color-honey-500);
+}
+.living-face__brows span:first-child { transform: rotate(9deg); }
+.living-face__brows span:last-child { transform: rotate(-9deg); }
+.living-face--talking .living-face__brows {
+  transform: translateY(calc(var(--living-face-mouth, 0) * var(--living-face-size) * -0.09));
+}
+
+.living-face__eyes { display: flex; gap: calc(var(--living-face-size) * 0.28); }
+.living-face__eye {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  width: calc(var(--living-face-size) * 0.3);
+  height: calc(var(--living-face-size) * 0.36);
+  border: 2.5px solid var(--color-honey-500);
+  border-radius: var(--radius-full);
+  background: var(--color-cream-0);
+  animation: living-face-blink 4500ms ease-in-out infinite;
+}
+.living-face__pupil {
+  position: relative;
+  display: block;
+  width: 48%;
+  height: 42%;
+  border-radius: var(--radius-full);
+  background: var(--color-dark-900);
+  animation: living-face-gaze 7000ms ease-in-out infinite;
+  transition: transform 90ms ease-out;
+}
+.living-face__pupil::after {
+  content: "";
+  position: absolute;
+  top: 14%;
+  left: 16%;
+  width: 34%;
+  height: 34%;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.85);
+}
+.living-face--talking .living-face__pupil {
+  animation: none;
+  transform: scale(calc(1 + var(--living-face-mouth, 0) * 0.35));
+}
+
+/* Idle: a gently pulsing smile. Talking: an open mouth with teeth + tongue
+   whose width, height, and jaw drop all follow the voice amplitude. */
+.living-face__mouth {
+  position: relative;
+  overflow: hidden;
+  width: calc(var(--living-face-size) * 0.5);
+  height: calc(var(--living-face-size) * 0.2);
+  border-right: 3px solid var(--color-honey-500);
+  border-bottom: 3px solid var(--color-honey-500);
+  border-left: 3px solid var(--color-honey-500);
+  border-top: 3px solid transparent;
+  border-radius: 0 0 var(--radius-full) var(--radius-full);
+  animation: living-face-smile 1600ms ease-in-out infinite;
+  transition: width 70ms linear, height 70ms linear, transform 70ms linear;
+}
+.living-face--talking .living-face__mouth {
+  animation: none;
+  border: 2.5px solid var(--color-honey-500);
+  border-radius: 46% 46% 50% 50% / 58% 58% 42% 42%;
+  background: var(--color-dark-900);
+  width: calc(var(--living-face-size) * (0.36 + 0.2 * var(--living-face-mouth, 0)));
+  height: calc(var(--living-face-size) * (0.14 + 0.46 * var(--living-face-mouth, 0)));
+  transform: translateY(calc(var(--living-face-mouth, 0) * var(--living-face-size) * 0.06));
+}
+.living-face--talking .living-face__mouth::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 76%;
+  height: 26%;
+  border-radius: 0 0 6px 6px;
+  background: var(--color-cream-0);
+}
+.living-face__tongue {
+  position: absolute;
+  bottom: -12%;
+  left: 18%;
+  display: block;
+  width: 64%;
+  height: 58%;
+  border-radius: var(--radius-full) var(--radius-full) 0 0;
+  background: var(--color-red-500);
+  opacity: 0;
+  transform: translateY(75%);
+  transition: transform 80ms ease-out, opacity 80ms ease-out;
+}
+.living-face--talking .living-face__tongue {
+  opacity: 0.85;
+  transform: translateY(calc((1 - var(--living-face-mouth, 0)) * 55%));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -85,6 +207,8 @@ body {
   .portrait-image--blink,
   .portrait-image--ambient,
   .portrait-light-overlay,
-  .living-face__eyes span,
-  .living-face__smile { animation: none; }
+  .living-face__glow,
+  .living-face__eye,
+  .living-face__pupil,
+  .living-face__mouth { animation: none; }
 }
