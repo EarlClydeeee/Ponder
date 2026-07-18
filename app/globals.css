@@ -63,6 +63,17 @@ body {
 .living-face__eyes { display: flex; gap: 16px; }
 .living-face__eyes span { width: calc(var(--living-face-size) * 0.28); height: calc(var(--living-face-size) * 0.36); border: 3px solid var(--color-honey-500); border-radius: var(--radius-full); background: var(--color-dark-900); animation: living-face-blink 4500ms ease-in-out infinite; }
 .living-face__smile { width: calc(var(--living-face-size) * 0.5); height: calc(var(--living-face-size) * 0.22); border-right: 3px solid var(--color-honey-500); border-bottom: 3px solid var(--color-honey-500); border-left: 3px solid var(--color-honey-500); border-radius: 0 0 var(--radius-full) var(--radius-full); animation: living-face-smile 1600ms ease-in-out infinite; }
+/* Lip-sync: while speaking the smile becomes a mouth whose height follows the
+   voice amplitude (--living-face-mouth: 0..1, set inline by PortraitFrame). */
+.living-face--talking .living-face__smile {
+  animation: none;
+  background: var(--color-dark-900);
+  border: 3px solid var(--color-honey-500);
+  border-radius: var(--radius-full);
+  width: calc(var(--living-face-size) * 0.44);
+  height: calc(var(--living-face-size) * (0.1 + 0.32 * var(--living-face-mouth, 0)));
+  transition: height 70ms linear;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .animate-breathe,
