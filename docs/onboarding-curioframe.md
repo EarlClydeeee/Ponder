@@ -42,15 +42,15 @@ Ponder's onboarding must deliver the "Living Portrait" moment before asking for 
 
 | Step | User Interaction | Visual/Hero State | UI Palette |
 | :--- | :--- | :--- | :--- |
-| **0. Welcome** | App Launch | Ponder logo + gold frame animation | Gallery dark |
+| **0. Welcome** | First visit to `/app` | Ponder logo + gold frame animation | Gallery dark |
 | **1. Learning Style** | Selects visual or dialogue | Portrait frame empty, shimmer | Gold accent |
 | **2. Use Context** | Selects museum/home/everywhere | Map icons fade in | Muted + gold |
 | **3. Demo Portrait** | Taps "Who are you?" chip | Mona Lisa awakens, speaks, slides appear | Full expressive |
 | **4. Ready** | "Capture your own" or "Try demo again" | Home with CTA | Gold CTA |
 
-**Post-demo permissions (sequential, not stacked):**
-1. Camera — "Photograph what you want to talk to"
-2. Mic — "Ask questions with your voice"
+**Post-demo permissions (sequential browser `getUserMedia` prompts, not stacked):**
+1. Camera — "Photograph what you want to talk to" (file upload fallback if denied)
+2. Mic — "Ask questions with your voice" (text input fallback if denied)
 
 ---
 
@@ -68,11 +68,11 @@ Ponder's onboarding must deliver the "Living Portrait" moment before asking for 
 ---
 
 ## 5. Design Principles for Onboarding
-* **Demo before permissions:** Never lead with camera/mic system dialogs.
+* **Demo before permissions:** Never lead with camera/mic browser permission prompts.
 * **One screen per question:** No scrolling onboarding carousel.
 * **Immediate mechanism:** User must hear a Living Portrait speak before home screen.
 * **Kid-safe copy:** Persona greetings educational; parental disclaimer on AI accuracy on final onboarding card.
 
 ---
 
-*Related: [prd-Ponder.md](prd-Ponder.md) US-05 · [dsd-Ponder.md](dsd-Ponder.md)*
+*Related: [prd-curioframe.md](prd-curioframe.md) US-05 · [dsd-curioframe.md](dsd-curioframe.md)*

@@ -4,8 +4,8 @@
 **Date:** 2026-07-18
 **Author:** earlc [TBD — confirm]
 **Status:** `Draft`
-**PRD Reference:** [prd-Ponder.md §7 — AI specs, US-01–04](prd-Ponder.md)
-**SDD Reference:** [sdd-Ponder.md §8 — AI architecture](sdd-Ponder.md)
+**PRD Reference:** [prd-curioframe.md §7 — AI specs, US-01–04](prd-curioframe.md)
+**SDD Reference:** [sdd-curioframe.md §8 — AI architecture](sdd-curioframe.md)
 **RFC ID:** `Ponder-rfc-001`
 
 ---
@@ -22,7 +22,7 @@ Implements PRD US-01 through US-04 and PRD §7. Extends SDD §8 tool surface and
 
 **Success criteria:**
 
-- Voice response begins within 2s of user end-of-speech on mid-tier phone (iPhone 13 / Pixel 6) on LTE
+- Voice response begins within 2s of user end-of-speech in a mid-tier phone browser (iPhone 13 Safari / Pixel 6 Chrome) on LTE
 - ≥90% of subject photos produce a coherent persona greeting without manual correction
 - Slide deck appears within 10s of tool call for decks of 1–3 images
 - Zero session crashes on Realtime disconnect; fallback activates within 3s
@@ -34,16 +34,16 @@ Implements PRD US-01 through US-04 and PRD §7. Extends SDD §8 tool surface and
 
 **Approach:**
 
-Introduce a `LivingPortraitEngine` class on the client that owns a state machine from capture through conversation. It (1) uploads photo and fetches persona config, (2) opens OpenAI Realtime WebSocket with vision + tools, (3) streams audio to/from UI, (4) handles `generate_slides` tool calls by invoking Edge Function and emitting deck events to the slide carousel. Portrait UI subscribes via `useLivingPortrait` hook — screens never talk to Realtime directly.
+Introduce a `LivingPortraitEngine` class in the browser that owns a state machine from capture through conversation. It (1) sends the photo to `/api/analyze-portrait` and fetches persona config, (2) opens an OpenAI Realtime **WebRTC** connection (ephemeral token from `/api/realtime-token`) with vision + tools, (3) streams audio to/from UI via Web Audio, (4) handles `generate_slides` tool calls by invoking `/api/generate-slides` and emitting deck events to the slide carousel. Portrait UI subscribes via `useLivingPortrait` hook — screens never talk to Realtime directly.
 
 **Architecture changes:**
 
 - Add `LivingPortraitEngine` class (`src/engine/LivingPortraitEngine.ts`)
-- Add submodules: `PersonaAnalyzer`, `RealtimeSession`, `SlideDeckCoordinator`, `PortraitAnimator`
+- Add submodules: `PersonaAnalyzer`, `RealtimeSession` (WebRTC), `SlideDeckCoordinator`, `PortraitAnimator`
 - Add `useLivingPortrait` hook (`src/hooks/useLivingPortrait.ts`)
-- Add `ConversationScreen` rendering from hook state (`src/screens/ConversationScreen.tsx`)
-- Add Edge Function `generate-slides` + `realtime-token`
-- Persist messages and decks via Supabase on turn complete
+- Add `ConversationScreen` rendering from hook state (`components/app/ConversationScreen.tsx`, rendered at `/app`)
+- Add API routes `app/api/generate-slides/route.ts` + `app/api/realtime-token/route.ts` + `app/api/analyze-portrait/route.ts`
+- Persist transcript and decks to `localStorage` on turn complete (Supabase sync post-MVP)
 
 ---
 
@@ -51,31 +51,26 @@ Introduce a `LivingPortraitEngine` class on the client that owns a state machine
 
 ### Data Model Changes
 
-Uses existing SDD schema. Local SQLite mirror for active session:
+Uses the SDD's `localStorage` shape. Session store contract (`src/engine/sessionStore.ts`):
 
-```sql
-CREATE TABLE IF NOT EXISTS local_sessions (
-  id              TEXT PRIMARY KEY,
-  user_id         TEXT NOT NULL,
-  title           TEXT,
-  photo_uri       TEXT NOT NULL,
-  persona_json    TEXT NOT NULL,
-  status          TEXT NOT NULL,
-  synced          INTEGER NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS local_messages (
-  id              TEXT PRIMARY KEY,
-  session_id      TEXT NOT NULL,
-  role            TEXT NOT NULL,
-  content_text    TEXT,
-  synced          INTEGER NOT NULL DEFAULT 0
-);
+```typescript
+interface SessionStore {
+  list(): StoredSession[];                       // "ponder.sessions", newest first
+  get(id: string): StoredSession | null;
+  save(session: StoredSession): void;            // upsert; evict oldest past cap of 5
+  remove(id: string): void;
+  appendTurn(id: string, turn: TranscriptTurn): void;   // flush on turn complete
+  appendDeck(id: string, deck: SlideDeck): void;
+  usageToday(): number;                          // "ponder.usage" — 3/day soft limit
+  incrementUsage(): void;
+}
 ```
+
+`synced` flags and background sync arrive with Supabase post-MVP; the interface stays stable so sync slots in behind `save()`.
 
 ### API Changes
 
-New Edge Functions (see SDD). Realtime session configured client-side with server-minted token.
+New Next.js API routes (see SDD §4). Realtime session opened client-side over WebRTC with a server-minted ephemeral token.
 
 ```typescript
 interface LivingPortraitEngine {
@@ -134,12 +129,12 @@ IDLE → ANALYZING → CONNECTING → ALIVE → LISTENING ⇄ SPEAKING → GENER
 ```
 
 - `ANALYZING`: Upload photo; `PersonaAnalyzer` returns `PersonaConfig`
-- `CONNECTING`: Mint token; open Realtime WS; send system prompt + image
+- `CONNECTING`: Mint token via `/api/realtime-token`; open Realtime WebRTC peer connection; send system prompt + image
 - `ALIVE`: Portrait breathing animation; await user input
 - `LISTENING`: Push-to-talk active; stream mic to Realtime
 - `SPEAKING`: Play assistant audio; drive `PortraitAnimator` lip-sync
 - `GENERATING_SLIDES`: Tool call in flight; show carousel skeleton
-- `FALLBACK_TEXT`: HTTP chat completion if WS dead
+- `FALLBACK_TEXT`: HTTP chat completion via API route if WebRTC dead
 - `ERROR`: User-facing message + retry
 
 `useLivingPortrait` exposes `{ phase, subjectLabel, transcript, activeDeck, decks, talkEnabled, error }`.
@@ -150,6 +145,7 @@ IDLE → ANALYZING → CONNECTING → ALIVE → LISTENING ⇄ SPEAKING → GENER
 
 | Option | Why Rejected |
 |--------|-------------|
+| **Expo React Native client** | 3-hour timebox; native toolchain + build overhead; browser ships instantly and Capacitor wraps the same web build for stores later |
 | **STT → LLM → TTS pipeline** | 3–5s turn latency; breaks conversational magic |
 | **Gemini Live only** | Less hackathon sample code; team familiarity with OpenAI Realtime [TBD — confirm] |
 | **On-device SLM for persona** | Cannot do quality vision + voice + slides in V1 on mobile |
@@ -198,10 +194,10 @@ Never break character. If unsure, say what historians believe and invite another
 
 **Performance:**
 
-- Downscale photo to max 1024px before upload
+- Downscale photo to max 1024px (canvas) before upload
 - Slide gen parallelized (Promise.all) for count ≤3
-- Release mic stream on background app state
-- Lip-sync uses amplitude envelope, not video re-render
+- Release mic stream on push-to-talk release and on tab hidden (`visibilitychange`)
+- Lip-sync uses amplitude envelope (AnalyserNode), not video re-render
 
 **Privacy:**
 
@@ -217,18 +213,18 @@ Never break character. If unsure, say what historians believe and invite another
 
 **Ticket breakdown:**
 
-| Ticket | Description | Size |
-|--------|-------------|------|
-| `CF-01` | Scaffold `LivingPortraitEngine` + state machine | S |
-| `CF-02` | `PersonaAnalyzer` + Edge analyze-portrait | M |
-| `CF-03` | `RealtimeSession` WS client + token mint | L |
-| `CF-04` | Push-to-talk audio I/O | M |
-| `CF-05` | `SlideDeckCoordinator` + generate-slides function | L |
-| `CF-06` | `PortraitAnimator` lip-sync / breathe | M |
-| `CF-07` | `useLivingPortrait` + ConversationScreen | M |
-| `CF-08` | Persistence + session list | S |
-| `CF-09` | Fallback text mode | S |
-| `CF-10` | Eval suite AI-01–AI-08 | M |
+| Ticket | Description | Size | 3-hour cut |
+|--------|-------------|------|------------|
+| `CF-01` | Scaffold `LivingPortraitEngine` + state machine | S | Core |
+| `CF-02` | `PersonaAnalyzer` + `/api/analyze-portrait` | M | Core |
+| `CF-03` | `RealtimeSession` WebRTC client + `/api/realtime-token` | L | Core |
+| `CF-04` | Push-to-talk audio I/O (`getUserMedia` + Web Audio) | M | Core |
+| `CF-05` | `SlideDeckCoordinator` + `/api/generate-slides` | L | Core (1 slide min) |
+| `CF-06` | `PortraitAnimator` lip-sync / breathe | M | Breathe only |
+| `CF-07` | `useLivingPortrait` + ConversationScreen in mobile shell | M | Core |
+| `CF-08` | `localStorage` persistence + session list | S | Core |
+| `CF-09` | Fallback text mode | S | Stretch |
+| `CF-10` | Eval suite AI-01–AI-08 | M | Post-MVP |
 
 **Rollout order:** CF-01 → CF-02 → CF-03 → CF-04 → CF-07 (vertical slice) → CF-05 → CF-06 → CF-08 → CF-09 → CF-10
 
@@ -245,4 +241,4 @@ Never break character. If unsure, say what historians believe and invite another
 
 ---
 
-*Next document: [QAD](qad-Ponder.md)*
+*Next document: [QAD](qad-curioframe.md)*

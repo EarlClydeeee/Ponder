@@ -4,7 +4,7 @@
 **Date:** 2026-07-18
 **Version:** 0.1
 **Owner:** earlc [TBD — confirm]
-**PRD:** [prd-Ponder.md](prd-Ponder.md)
+**PRD:** [prd-curioframe.md](prd-curioframe.md)
 
 ---
 
@@ -16,7 +16,7 @@
 
 **Core value proposition:** Interview the Mona Lisa. Ask a landmark its history. Learn by talking to what you're looking at.
 
-**Category:** App Store Education / Google Play Education (secondary: Entertainment)
+**Category:** Web launch first (shareable link, no install); Google Play Education post-Capacitor, Android-only (secondary: Entertainment) — iOS stays web
 
 ---
 
@@ -45,7 +45,7 @@
 
 **Pricing rationale:** API cost ~$0.35/session caps free tier at 3/day; Pro targets museum members and homeschool parents who'll pay less than a single audio guide rental ($5–8).
 
-**Payment processor:** RevenueCat + App Store / Google Play billing
+**Payment processor:** Stripe (web) at launch; Google Play billing when the Capacitor Android build ships [TBD — confirm]
 
 ---
 
@@ -95,9 +95,9 @@ Museums show you art. Ponder lets you talk to it. Photograph any painting, statu
 **Content assets needed before launch:**
 
 - [ ] Demo video (45 sec) — capture Mona Lisa poster → awaken → voice Q → slides
-- [ ] App Store screenshots (5) — Capture, Awaken, Talk, Slides, History
-- [ ] Store description copy (short + long)
-- [ ] Landing page — see [plan-website-Ponder.md](plan-website-Ponder.md)
+- [ ] App screenshots (5) — Capture, Awaken, Talk, Slides, History *(reused for Google Play post-Capacitor)*
+- [ ] Play Store description copy (short + long) *(post-Capacitor)*
+- [ ] Landing page at `/` — see [plan-website-curioframe.md](plan-website-curioframe.md)
 - [ ] Product Hunt listing + first comment
 - [ ] Reddit post copy (2 variants)
 
@@ -107,10 +107,10 @@ Museums show you art. Ponder lets you talk to it. Photograph any painting, statu
 
 | Phase | Criteria to Enter | Target Date | Goal |
 |-------|-------------------|-------------|------|
-| **Alpha** | Vertical slice on device; demo portrait works | Week 8 | 10 testers (friends + teachers) |
-| **Beta** | Must-Haves stable; onboarding done | Week 10 | 50–100 TestFlight users; D7 baseline |
-| **Public Launch** | QAD passed; store assets ready | Week 12 | 5k installs in 90 days |
-| **Post-launch (30 days)** | — | Week 16 | ≥35% D7; first Pro conversions |
+| **Alpha** | 3-hour MVP live on Vercel; demo portrait works | Day 1 | 10 testers via shared link (friends + teachers) |
+| **Beta** | Must-Haves stable; onboarding done | Week 4 | 50–100 users via shareable preview URL; D7 baseline |
+| **Public Launch** | QAD passed; landing polished | Week 8 | 5k sessions in 90 days |
+| **Store Launch** | Capacitor Android build approved | Week 10–12 | Google Play listing live (Android-only) |
 
 ---
 
@@ -118,12 +118,12 @@ Museums show you art. Ponder lets you talk to it. Photograph any painting, statu
 
 | Metric | Target | How to Measure |
 |--------|--------|----------------|
-| App installs | 5,000 | Store consoles |
+| Web sessions + installs | 5,000 | Analytics + store consoles |
 | D7 retention | ≥35% | PostHog / Amplitude [TBD — confirm] |
 | D30 retention | ≥20% | Same |
 | Sessions with ≥3 turns + slides | ≥45% | Custom event |
-| App Store rating | ≥4.3 | Store Connect |
-| Pro conversion | ≥3% MAU | RevenueCat |
+| Google Play rating *(post-Capacitor)* | ≥4.3 | Play Console |
+| Pro conversion | ≥3% MAU | Stripe |
 | Product Hunt rank | Top 5 Education | PH dashboard |
 
 ---
@@ -140,10 +140,10 @@ Museums show you art. Ponder lets you talk to it. Photograph any painting, statu
 ---
 
 *Full FMD suite complete. Document index:*
-- *[BRD](brd-Ponder.md) — Why build this*
-- *[PRD](prd-Ponder.md) — What to build*
-- *[DSD](dsd-Ponder.md) — How it looks*
-- *[SDD](sdd-Ponder.md) — How it's built*
-- *[RFC](rfc-Ponder-living-portrait-engine.md) — Living Portrait engine*
-- *[QAD](qad-Ponder.md) — How we test it*
-- *[GTM](gtm-Ponder.md) — How we launch it*
+- *[BRD](brd-curioframe.md) — Why build this*
+- *[PRD](prd-curioframe.md) — What to build*
+- *[DSD](dsd-curioframe.md) — How it looks*
+- *[SDD](sdd-curioframe.md) — How it's built*
+- *[RFC](rfc-curioframe-living-portrait-engine.md) — Living Portrait engine*
+- *[QAD](qad-curioframe.md) — How we test it*
+- *[GTM](gtm-curioframe.md) — How we launch it*

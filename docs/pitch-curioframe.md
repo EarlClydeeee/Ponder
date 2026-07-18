@@ -60,9 +60,9 @@
 | Visual Story Slides | Auto-generated explainer images | Dual coding boosts retention |
 | Session History | Save & replay conversations | Extends value beyond visit |
 
-**Platform:** iOS + Android (Expo) first — camera + mic + museum context
+**Platform:** Web-first — runs in any phone browser at `/app`, no install; Android (Google Play) app via Capacitor next, iOS stays web
 
-**Tech approach:** Expo client + Supabase + OpenAI Realtime (vision/voice) + image API for slides; details in [sdd-Ponder.md](sdd-Ponder.md).
+**Tech approach:** Next.js 15 web app (landing + `/app` + key-holding API routes) + OpenAI Realtime over WebRTC (vision/voice) + image API for slides; localStorage sessions, Supabase sync post-MVP; details in [sdd-curioframe.md](sdd-curioframe.md).
 
 ---
 
@@ -89,7 +89,7 @@ Pre-launch. Forward milestones:
 
 | Milestone | Target | Timeline |
 |-----------|--------|----------|
-| Hackathon demo | Living Portrait vertical slice | Week 1 |
+| 3-hour MVP | Living Portrait vertical slice live on the web | Day 1 |
 | Beta testers | 100 | Week 10 |
 | Public launch | 5k installs | Week 12 |
 
@@ -112,13 +112,13 @@ Pre-launch. Forward milestones:
 
 ## 9. Go-To-Market (Summary)
 
-**Launch surface:** App Store + TikTok/Reels demo videos + Product Hunt
+**Launch surface:** Shareable web link (`/app`) + TikTok/Reels demo videos + Product Hunt; Google Play post-Capacitor
 
 **First 1,000 users:** "Mona Lisa answers my kid" short-form video → r/SideProject + museum subreddits + homeschool groups
 
 **Growth loop:** Share clips (portrait + voice + slide) → viewers ask "what app?" → download
 
-Full plan: [gtm-Ponder.md](gtm-Ponder.md)
+Full plan: [gtm-curioframe.md](gtm-curioframe.md)
 
 ---
 
@@ -159,6 +159,6 @@ Full plan: [gtm-Ponder.md](gtm-Ponder.md)
 ---
 
 *Related documents:*
-- *[BRD](brd-Ponder.md) — Business case and scope*
-- *[GTM](gtm-Ponder.md) — Full launch strategy*
-- *[PRD](prd-Ponder.md) — Feature detail*
+- *[BRD](brd-curioframe.md) — Business case and scope*
+- *[GTM](gtm-curioframe.md) — Full launch strategy*
+- *[PRD](prd-curioframe.md) — Feature detail*

@@ -5,7 +5,7 @@
 **Version:** 0.1
 **Owner:** earlc [TBD — confirm]
 **Status:** Draft
-**BRD:** [brd-Ponder.md](brd-Ponder.md)
+**BRD:** [brd-curioframe.md](brd-curioframe.md)
 
 ---
 
@@ -61,7 +61,7 @@ Acceptance Criteria:
 
 Acceptance Criteria:
 - Given an active session, when I hold the talk button and ask a question, then I hear an in-character spoken response within 2s of me finishing (network permitting).
-- Given mic permission denied, when I try to talk, then I see a settings deep-link and can fall back to text input.
+- Given mic permission denied, when I try to talk, then I see browser-specific guidance to re-enable the mic (site permissions) and can fall back to text input.
 - Given a noisy environment, when speech is unclear, then the app asks me to repeat once before failing gracefully.
 
 **US-03 — Visual slides during explanation**
@@ -90,7 +90,7 @@ Acceptance Criteria:
 
 ## 5. UX & Design Intent
 
-**Design reference:** [dsd-Ponder.md](dsd-Ponder.md)
+**Design reference:** [dsd-curioframe.md](dsd-curioframe.md)
 
 **Key flows:**
 - Capture → Awaken → Talk — ≤3 taps from home to first voice response
@@ -99,6 +99,7 @@ Acceptance Criteria:
 
 **Constraints:**
 - Mobile-first; portrait orientation primary for conversation screen
+- `/app` runs in a mobile-ratio shell: phone-frame (~390px, 9:19.5) centered on desktop viewports; full-viewport on phone browsers
 - One-handed talk button reachable by thumb
 - Portrait animation must not block slide carousel or captions
 - Voice response perceived latency target <2s after user stops speaking on LTE
@@ -153,14 +154,16 @@ Acceptance Criteria:
 ## 8. Dependencies & Assumptions
 
 **Dependencies:**
-- Expo SDK 52+ (camera, audio, secure storage)
-- OpenAI Realtime API access
+- Next.js 15 (App Router) on Vercel — `/` landing, `/app` product, `/api/*` key-holding routes
+- Browser Web APIs: `getUserMedia` (camera + mic), Web Audio, `localStorage`
+- OpenAI Realtime API access (WebRTC transport)
 - OpenAI image generation API (gpt-image-1 or DALL·E 3)
-- Supabase (auth, session storage, slide asset URLs)
-- RevenueCat or native IAP for Pro tier [TBD — confirm]
+- Capacitor for Android (Google Play) packaging *(post-MVP)* — iOS stays web-only via Safari
+- Supabase (auth, session sync, slide asset URLs) *(post-MVP)*
+- Stripe / RevenueCat for Pro tier *(post-MVP)* [TBD — confirm]
 
 **Assumptions:**
-- Users grant camera + mic on first meaningful prompt
+- Users grant camera + mic browser permissions on first meaningful prompt (HTTPS required)
 - Network available during sessions (Wi‑Fi or LTE)
 - Users accept AI-generated educational content may contain errors; disclaimer shown
 - Subject matter is user-owned photo or public exhibit photography (no DRM bypass)
@@ -171,11 +174,11 @@ Acceptance Criteria:
 
 | Milestone | Deliverable | Target Date |
 |-----------|-------------|-------------|
-| M0 | Repo scaffold, Realtime spike, demo portrait loop | Week 1 |
-| M1 | Vertical slice: capture → voice reply → 1 slide | Week 4 |
-| M2 | Must-Haves complete; onboarding; session save | Week 7 |
-| M3 | Should-Haves; QA staging; share clip | Week 10 |
-| Launch | Public release; QAD passed; GTM live | Week 12 |
+| M0 — 3-hour MVP | Browser vertical slice live on Vercel: capture → voice reply → ≥1 slide → localStorage save | Hour 3 |
+| M1 | Must-Haves polished; onboarding; fallback text mode | Week 2 |
+| M2 | Should-Haves; QA staging; share clip; Supabase sync | Week 5 |
+| M3 | Capacitor Android build; Google Play submission | Week 8 |
+| Launch | Public release (web + Play Store); QAD passed; GTM live | Week 10 |
 
 ---
 
@@ -190,4 +193,4 @@ Acceptance Criteria:
 
 ---
 
-*Next document: [DSD](dsd-Ponder.md) | [SDD](sdd-Ponder.md)*
+*Next document: [DSD](dsd-curioframe.md) | [SDD](sdd-curioframe.md)*

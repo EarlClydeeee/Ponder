@@ -53,7 +53,8 @@ Secondary: **Leo, 22, design student** who photographs products and architecture
 - Sequential slide/image generation triggered by explanation topics in the conversation
 - Continuous multi-turn Q&A within a session
 - Session history (local + cloud sync)
-- iOS and Android via Expo; optional web demo for marketing
+- Browser-first web app (Next.js): `/` landing page + `/app` mobile-ratio experience — works on any phone browser, no install
+- Android store app via Capacitor wrap of the same web build (post-MVP); iOS served via mobile Safari (no native iOS build)
 - Freemium usage limits (daily portrait sessions)
 
 **Out of Scope (V1):**
@@ -63,6 +64,7 @@ Secondary: **Leo, 22, design student** who photographs products and architecture
 - User-created custom personas or marketplace of characters
 - Official museum API partnerships and licensed artwork verification
 - Offline voice (requires network for Realtime API)
+- Native store builds in the initial 3-hour MVP (Capacitor packaging follows post-MVP)
 - Desktop native apps
 - Social feed / sharing beyond export clip
 - Monetization beyond freemium subscription [TBD — confirm pricing]
@@ -73,11 +75,11 @@ Secondary: **Leo, 22, design student** who photographs products and architecture
 
 | Metric | Baseline | Target | Timeline |
 |--------|----------|--------|----------|
-| App installs | 0 | 5,000 | 90 days post-launch [TBD — confirm] |
+| Installs + web app sessions | 0 | 5,000 | 90 days post-launch [TBD — confirm] |
 | D7 retention | 0 | ≥35% | Measured from launch cohort |
 | D30 retention | 0 | ≥20% | Measured from launch cohort |
 | Sessions with ≥3 voice turns + ≥1 slide deck | 0 | ≥45% of first-time users | 60 days post-launch |
-| App Store / Play rating | 0 | ≥4.3 | Ongoing after 100 reviews |
+| Google Play rating *(post-Capacitor, Android-only)* | 0 | ≥4.3 | Ongoing after 100 reviews |
 | Free → Pro conversion | 0 | ≥3% of MAU | 90 days post-launch [TBD — confirm] |
 
 ---
@@ -102,4 +104,4 @@ Secondary: **Leo, 22, design student** who photographs products and architecture
 
 ---
 
-*Next document: [PRD](prd-Ponder.md)*
+*Next document: [PRD](prd-curioframe.md)*

@@ -4,8 +4,8 @@
 **Date:** 2026-07-18
 **Version:** 0.1
 **Owner:** earlc [TBD — confirm]
-**PRD:** [prd-Ponder.md](prd-Ponder.md)
-**RFC(s):** [rfc-Ponder-living-portrait-engine.md](rfc-Ponder-living-portrait-engine.md)
+**PRD:** [prd-curioframe.md](prd-curioframe.md)
+**RFC(s):** [rfc-curioframe-living-portrait-engine.md](rfc-curioframe-living-portrait-engine.md)
 
 ---
 
@@ -16,38 +16,38 @@
 - Living Portrait engine (RFC): awaken, voice, slides, fallback
 - Onboarding flow
 - Session save/replay
-- Offline cached session list (read-only)
-- Auth: signup, login, session persistence, logout
-- Daily free-tier limit enforcement
+- Offline cached session list (read-only, `localStorage`)
+- Daily free-tier limit enforcement (device-ID soft limit)
+- Auth: signup, login, session persistence, logout *(post-MVP, with Supabase sync)*
 
 **Out of Scope:**
 - Load testing above 1,000 concurrent Realtime sessions
 - Full WCAG audit (spot-check only)
 - AR live camera mode (v2)
-- iOS <16 / Android <10
+- Browsers older than iOS 16 Safari / Chrome 110; IE/legacy Edge
 
 **Testing levels:**
 
 | Level | Tooling | Owner |
 |-------|---------|-------|
-| Unit tests | Jest + React Native Testing Library | Engineer |
-| Integration tests | Jest + mocked Realtime WS | Engineer |
-| E2E tests | Maestro | Engineer / QA |
-| Manual exploratory | Physical iOS + Android devices | earlc [TBD — confirm] |
+| Unit tests | Vitest + React Testing Library | Engineer |
+| Integration tests | Vitest + mocked Realtime session | Engineer |
+| E2E tests | Playwright | Engineer / QA |
+| Manual exploratory | Desktop mobile shell + phone browsers (iOS Safari, Android Chrome) | earlc [TBD — confirm] |
 | AI eval | Manual + scripted photo set | Engineer |
 
 ---
 
 ## 2. Test Environments & Data
 
-**Staging URL:** Supabase staging + TestFlight / Play Internal
-**Test credentials:** `qa-ios@Ponder.test`, `qa-android@Ponder.test` in `.env.test`
-**Data policy:** Reset staging DB before major cycles; bundled eval photos in `tests/fixtures/portraits/`
+**Staging URL:** Vercel preview deployment per PR (shareable on any phone browser)
+**Test credentials:** None in MVP (anonymous); OpenAI test key in `.env.test`
+**Data policy:** Clear `localStorage` between runs (`Clear my sessions` button or DevTools); bundled eval photos in `tests/fixtures/portraits/`
 
 **Test data setup:**
 ```bash
-supabase db reset --linked
-node scripts/seed-qa-users.ts
+npm run dev                       # local, .env.local key
+npx playwright test --project=chromium
 ```
 
 ---
@@ -63,22 +63,23 @@ node scripts/seed-qa-users.ts
 | H-03 | Voice Q&A | Hold talk → "Who are you?" → release | In-character audio answer <2s after speech end | US-02 |
 | H-04 | Slides on explanation | Ask "Tell me about your history" | ≥1 slide appears within 10s; caption matches topic | US-03 |
 | H-05 | Follow-up thread | Ask 3 related follow-ups | No repeated intro; context coherent | US-04 |
-| H-06 | Save session | End → Save → reopen from history | Transcript + slides restored | US-04 |
-| H-07 | Cross-device sync | Session on iOS → login Android | Same session visible | — |
+| H-06 | Save session | End → Save → reopen from history | Transcript + slides restored from localStorage | US-04 |
+| H-07 | Desktop mobile shell | Open `/app` on ≥768px viewport | App renders inside phone-ratio frame; fully functional | — |
+| H-08 *(post-MVP)* | Cross-device sync | Session on iPhone → login Android | Same session visible | — |
 
 ### Sad Paths (edge cases and error handling)
 
 | ID | Scenario | Input / Trigger | Expected Behavior |
 |----|----------|-----------------|-------------------|
 | S-01 | Blurry photo | Low-light blurry capture | Awaken succeeds with hedged greeting; no crash |
-| S-02 | Mic denied | Revoke mic → talk | Settings deep-link; text fallback offered |
-| S-03 | Camera denied | Revoke camera | Gallery import path; demo portrait CTA |
-| S-04 | Realtime disconnect | Kill WS mid-session | Fallback text within 3s; banner shown |
-| S-05 | Slide gen failure | Mock 500 from generate-slides | Text summary card; conversation continues |
+| S-02 | Mic denied | Block mic permission → talk | Browser re-enable guidance; text fallback offered |
+| S-03 | Camera denied | Block camera permission | File upload path; demo portrait CTA |
+| S-04 | Realtime disconnect | Kill WebRTC mid-session | Fallback text within 3s; banner shown |
+| S-05 | Slide gen failure | Mock 500 from `/api/generate-slides` | Text summary card; conversation continues |
 | S-06 | Daily limit hit | 4th session same day (free) | Paywall / wait until reset; no token mint |
-| S-07 | App backgrounded | Background during speak | Audio completes or pauses cleanly; resume ok |
-| S-08 | Kill app mid-session | Force quit during talk | On reopen: recover or offer discard draft |
-| S-09 | Network drop mid-upload | Airplane during photo upload | Retry prompt; no duplicate sessions |
+| S-07 | Tab backgrounded | Switch tab during speak | Audio completes or pauses cleanly; mic released; resume ok |
+| S-08 | Tab closed mid-session | Close tab during talk | On revisit: last flushed turns recovered from localStorage |
+| S-09 | Network drop mid-analyze | Airplane mode during persona pre-pass | Retry prompt; no duplicate sessions |
 | S-10 | Inappropriate question | Offensive prompt | In-character refusal; no slides |
 
 ---
@@ -90,22 +91,22 @@ node scripts/seed-qa-users.ts
 ```yaml
 - pnpm lint
 - pnpm typecheck
-- pnpm test              # Engine state machine, persona parser
+- pnpm test              # Vitest: engine state machine, persona parser, sessionStore
 - pnpm test:integration  # Mock Realtime + slide tool
-# Maestro on main:
-- maestro test flows/onboarding.yaml
-- maestro test flows/demo-portrait.yaml
-- maestro test flows/voice-question.yaml
+# Playwright on main:
+- npx playwright test e2e/onboarding.spec.ts
+- npx playwright test e2e/demo-portrait.spec.ts
+- npx playwright test e2e/voice-question.spec.ts
 ```
 
 **CI gate:** PR blocked on lint, typecheck, unit failures.
 
 ### Manual / Exploratory
 
-- Full voice loop on physical devices with headphones (museum simulation)
+- Full voice loop on phone browsers (iOS Safari + Android Chrome) with headphones (museum simulation)
 - Noisy cafe mic test
 - 15-min exploratory: random objects (shoe, plant, book)
-- Share clip export visual check
+- Desktop mobile shell check at 768px boundary
 - Wall-clock daily limit reset at midnight UTC
 
 ---
@@ -128,13 +129,13 @@ node scripts/seed-qa-users.ts
 Launch approved when:
 
 - [ ] All P0 and P1 bugs resolved
-- [ ] H-01 through H-07 pass on iOS and Android physical devices
+- [ ] H-01 through H-07 pass on iOS Safari + Android Chrome + desktop mobile shell
 - [ ] S-01 through S-10 verified manually
 - [ ] CI green: lint, typecheck, unit, integration
-- [ ] Maestro flows green on staging
+- [ ] Playwright flows green on Vercel preview
 - [ ] AI eval AI-01–AI-08 pass (Section 7)
 - [ ] Voice latency spot-check: median <2s on LTE (5 samples)
-- [ ] App Store / Play internal track approved
+- [ ] Vercel production deploy live (Google Play submission post-Capacitor, Android-only)
 
 ---
 
@@ -179,4 +180,4 @@ Launch approved when:
 
 ---
 
-*Next document: [GTM](gtm-Ponder.md)*
+*Next document: [GTM](gtm-curioframe.md)*

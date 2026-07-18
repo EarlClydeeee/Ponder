@@ -4,7 +4,7 @@
 **Date:** 2026-07-18
 **Version:** 0.1
 **Owner:** earlc [TBD — confirm]
-**PRD:** [prd-Ponder.md](prd-Ponder.md)
+**PRD:** [prd-curioframe.md](prd-curioframe.md)
 
 ---
 
@@ -60,7 +60,7 @@
 | Stat / Number Display | Fraunces | 700 | 48px | 1.0 |
 | Mono / Code | JetBrains Mono | 400 | 13px | 1.5 |
 
-**Font loading:** Google Fonts via `expo-font` — preload Fraunces + Inter on splash; swap on load.
+**Font loading:** Google Fonts via `next/font/google` — Fraunces + Inter self-hosted at build time; zero layout shift.
 
 ### Elevation & Depth
 
@@ -88,10 +88,11 @@
 
 **Grid:** Single-column mobile; conversation screen = portrait 55% height top, slides 30%, talk control 15% bottom safe area.
 
-**Breakpoints:**
-- Mobile — `360px` min
-- Tablet — `768px` (portrait left, slides right split)
-- Desktop web demo — `1024px` [TBD — confirm]
+**Breakpoints (`/app` route):**
+- Mobile — `<768px`: app fills the viewport edge-to-edge
+- Desktop — `≥768px`: app renders inside the **Mobile Shell** phone frame (see §4), centered on the gallery-dark backdrop
+
+**Breakpoints (`/` landing):** standard responsive — `360px` min, `768px` tablet, `1024px` desktop
 
 ---
 
@@ -124,6 +125,14 @@
 - Border: `1px solid --color-border`
 - Border radius: `20px` (portrait frame), `16px` (slides)
 - Modal backdrop: `rgba(0,0,0,0.80)`
+
+### Mobile Shell (desktop frame for `/app`)
+
+- On viewports ≥768px, `/app` renders inside a centered phone-ratio frame: max-width `390px`, aspect `9:19.5` (~390×844)
+- Bezel: `--color-surface` border `8px`, border radius `44px`, `--shadow-lg`; backdrop `--color-bg` (gallery-dark, subtle vignette)
+- Inner content scrolls independently; landing navbar never appears inside the shell
+- On viewports <768px the shell disappears — the app fills the real phone screen
+- Purpose: desktop visitors experience the exact mobile product; Capacitor later renders the same content full-screen natively
 
 ### Living Portrait Frame (signature component)
 
@@ -201,4 +210,4 @@ VISUAL_DENSITY:     4   (portrait-forward, minimal lists)
 
 ---
 
-*Next document: [SDD](sdd-Ponder.md)*
+*Next document: [SDD](sdd-curioframe.md)*

@@ -1,18 +1,19 @@
-# Website Plan — Ponder Landing Page
+# Web App Plan — Ponder Landing + `/app`
 
-**Type:** Single-page informational website
-**Framework:** Next.js 15 (App Router, static export)
-**Folder:** `/website`
-**Goal:** Communicate the Living Portrait magic, build trust, drive App Store / Play Store downloads.
+**Type:** Single Next.js project — the whole product
+**Framework:** Next.js 15 (App Router)
+**Folder:** repo root
+**Routes:** `/` = landing page · `/app` = the mobile app in a mobile-ratio shell · `/api/*` = key-holding routes
+**Goal:** `/` communicates the Living Portrait magic and sends visitors into `/app`; `/app` *is* the product — no install needed. Capacitor wraps this same build for **Android (Google Play)** post-MVP; iOS users keep using the web app in Safari.
 
 ---
 
 ## Philosophy
 
-- **One job:** Get the visitor to imagine interviewing a painting — then tap Download.
+- **One job:** Get the visitor to imagine interviewing a painting — then tap **Open Ponder** and actually do it at `/app`.
 - **Narrative first:** Hook (Mona Lisa speaks) → problem (passive museums) → solution (voice + slides) → proof → CTA.
 - **No clutter:** No blog, pricing page, or login. Single scroll.
-- **Brand exact:** Gallery dark `#0F0E0C`, gold `#C9A227`, Fraunces + Inter from [dsd-Ponder.md](dsd-Ponder.md).
+- **Brand exact:** Gallery dark `#0F0E0C`, gold `#C9A227`, Fraunces + Inter from [dsd-curioframe.md](dsd-curioframe.md).
 
 ---
 
@@ -20,35 +21,46 @@
 
 | Decision | Choice | Reason |
 |----------|--------|--------|
-| Framework | Next.js 15 App Router | Static export; fast CDN deploy |
+| Framework | Next.js 15 App Router | One project: landing + app + API routes |
 | Styling | Tailwind CSS v4 | Matches DSD tokens |
 | Fonts | `next/font/google` — Fraunces, Inter | DSD spec |
 | Icons | `lucide-react` | Lightweight |
 | Animations | CSS keyframes | Portrait breathe, gold ring |
-| Deployment | Vercel | Zero-config |
+| Deployment | Vercel | Zero-config; preview URL = device-test build |
+| Native packaging *(post-MVP)* | Capacitor — **Android only** | Wraps web build for Google Play; iOS stays web |
 
 ---
 
 ## Folder Structure
 
 ```
-website/
+/  (repo root)
 ├── app/
-│   ├── layout.tsx
-│   ├── page.tsx
-│   └── globals.css
+│   ├── layout.tsx              # fonts, metadata, globals
+│   ├── page.tsx                # landing (/)
+│   ├── globals.css             # DSD tokens as CSS custom properties
+│   ├── app/
+│   │   └── page.tsx            # the product (/app) inside <MobileShell>
+│   └── api/
+│       ├── realtime-token/route.ts
+│       ├── analyze-portrait/route.ts
+│       └── generate-slides/route.ts
 ├── components/
-│   ├── Navbar.tsx
-│   ├── HeroSection.tsx
-│   ├── ProblemSection.tsx
-│   ├── HowItWorksSection.tsx
-│   ├── ScienceSection.tsx
-│   ├── PortraitDemoSection.tsx
-│   ├── CtaSection.tsx
-│   └── Footer.tsx
-├── lib/constants.ts
-└── public/images/...
+│   ├── landing/                # Navbar, HeroSection, ProblemSection,
+│   │                           # HowItWorksSection, ScienceSection,
+│   │                           # PortraitDemoSection, CtaSection, Footer
+│   └── app/                    # MobileShell, CaptureScreen, ConversationScreen,
+│                               # PortraitFrame, TalkButton, SlideCarousel, SessionList
+├── src/
+│   ├── engine/                 # LivingPortraitEngine, RealtimeSession,
+│   │                           # PersonaAnalyzer, SlideDeckCoordinator,
+│   │                           # PortraitAnimator, sessionStore.ts, types.ts
+│   └── hooks/useLivingPortrait.ts
+├── lib/theme.ts                # DSD tokens for TS consumers
+└── public/demo/                # bundled Mona Lisa asset + cached demo audio/slides
 ```
+
+**Mobile Shell (`components/app/MobileShell.tsx`):** on viewports ≥768px, `/app` renders centered in a phone-ratio frame — max-width 390px, 9:19.5 aspect, rounded bezel, `--shadow-lg`, gallery-dark backdrop. On mobile viewports it fills the screen. See [dsd-curioframe.md §4](dsd-curioframe.md).
 
 ---
 
@@ -56,7 +68,7 @@ website/
 
 ### 1. Navbar
 **Left:** Ponder wordmark — Fraunces, gold
-**Right:** "Download Free" → `#cta`
+**Right:** "Open Ponder" → `/app`
 
 ### 2. Hero Section
 **Headline:**
@@ -66,8 +78,8 @@ website/
 **Subheadline:**
 > Ponder brings paintings, statues, landmarks, and everyday objects to life. Ask questions by voice. Watch story slides appear as they teach.
 
-**CTA:** App Store + Google Play badges
-**Mockup:** Conversation screen — Mona Lisa frame + slide carousel
+**CTA:** Gold "Open Ponder →" button → `/app` (Google Play badge post-Capacitor)
+**Mockup:** Conversation screen — Mona Lisa frame + slide carousel (the real `/app` in a phone frame)
 
 ### 3. Problem Section
 **Eyebrow:** THE PROBLEM
@@ -92,7 +104,7 @@ website/
 
 ### 7. CTA Section `id="cta"`
 **Headline:** What will you interview first?
-**CTA:** Store badges — "Free · 3 sessions/day"
+**CTA:** "Open Ponder →" button → `/app` — "Free · 3 sessions/day · no install"
 
 ### 8. Footer
 Privacy · Contact · © 2026 Ponder
@@ -132,17 +144,19 @@ export const metadata = {
 ## Build & Deploy
 
 ```bash
-cd website && npm install && npm run dev
-npm run build   # outputs to website/out/
-vercel --prod   # root: website/
+npm install && npm run dev    # http://localhost:3000 → / and /app
+npm run build                 # production build
+vercel --prod                 # deploy from repo root
 ```
+
+`OPENAI_API_KEY` in `.env.local` (dev) and Vercel project env (preview/prod).
 
 ---
 
 ## What This Page Is NOT
 
-Not a blog, docs site, waitlist form, or dashboard. One page. One scroll. Download.
+The landing page is not a blog, docs site, waitlist form, or dashboard. One page. One scroll. Open `/app`.
 
 ---
 
-*Related: [gtm-Ponder.md](gtm-Ponder.md) · [dsd-Ponder.md](dsd-Ponder.md)*
+*Related: [gtm-curioframe.md](gtm-curioframe.md) · [dsd-curioframe.md](dsd-curioframe.md)*
