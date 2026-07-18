@@ -7,6 +7,9 @@
 import { NextResponse } from "next/server";
 import type { AnalyzePortraitRequest, AwakenResult } from "@/src/engine/types";
 
+/** Vision calls can exceed Vercel Hobby's 10s default function window. */
+export const maxDuration = 30;
+
 const VISION_MODEL = "gpt-4o";
 const SUBJECT_TYPES = ["artwork", "portrait", "object", "animal", "unknown"] as const;
 const ANIMATION_STYLES = ["parallax", "blink", "ambient"] as const;

@@ -121,10 +121,14 @@ export class LivingPortraitEngine {
     try {
       this.profile = await generatePersona(config.photoDataUrl);
       this.syncFace();
-    } catch {
+    } catch (err) {
+      // Surface the route's reason (missing key, upstream error, timeout) —
+      // "Try another shot" alone is undiagnosable in production.
+      const detail =
+        err instanceof Error && err.message.trim() ? ` ${err.message}` : "";
       this.fail({
         code: "analyze_failed",
-        message: "Could not read that photo. Try another shot.",
+        message: `Could not read that photo.${detail}`,
         recoverable: true,
       });
       return;

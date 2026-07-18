@@ -13,6 +13,9 @@ import type {
   RealtimeVoice,
 } from "@/src/engine/types";
 
+/** Vision + reasoning can exceed Vercel's default function window. */
+export const maxDuration = 60;
+
 type ReasoningEffort = "none" | "low" | "medium" | "high" | "xhigh";
 type ImageDetail = "low" | "high" | "auto" | "original";
 

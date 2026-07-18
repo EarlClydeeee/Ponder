@@ -13,6 +13,9 @@ import type {
 
 type ReasoningEffort = "none" | "low" | "medium" | "high" | "xhigh";
 
+/** Streaming + optional web search can exceed Vercel Hobby's 10s default. */
+export const maxDuration = 60;
+
 const CHAT_MODEL = process.env.CHAT_MODEL ?? "gpt-5.4-mini";
 const CHAT_REASONING_EFFORT = readReasoningEffort(
   process.env.CHAT_REASONING_EFFORT,
