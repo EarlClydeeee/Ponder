@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export default function LandingPage() {
   return (
-    <main className="min-h-dvh bg-[var(--color-bg)] text-[var(--color-text)]">
+    <main className="min-h-dvh bg-[var(--bg-page)] text-[var(--text-primary)]">
       <Navbar />
       <Hero />
       <Problem />
@@ -21,13 +21,13 @@ export default function LandingPage() {
 
 function Navbar() {
   return (
-    <nav className="sticky top-0 z-20 flex items-center justify-between border-b border-[var(--color-border)] bg-[rgba(15,14,12,0.8)] px-6 py-4 backdrop-blur">
-      <span className="font-[family-name:var(--font-display)] text-xl text-[var(--color-primary)]">
+    <nav className="sticky top-0 z-20 flex items-center justify-between border-b border-[var(--border-default)] bg-[rgba(254,252,247,0.88)] px-6 py-4 backdrop-blur">
+      <span className="ponder-logo">
         Ponder
       </span>
       <Link
         href="/app"
-        className="rounded-[14px] bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-inverse)] transition hover:bg-[var(--color-primary-hover)]"
+        className="btn-primary px-4 py-2 text-sm font-semibold"
       >
         Open Ponder
       </Link>
@@ -38,22 +38,22 @@ function Navbar() {
 function Hero() {
   return (
     <section className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 py-24 text-center">
-      <h1 className="font-[family-name:var(--font-display)] text-5xl leading-[1.1] md:text-6xl">
+      <h1 className="font-[family-name:var(--font-display)] text-5xl font-extrabold leading-[1.1] text-[var(--text-heading)] md:text-6xl">
         Interview anything
         <br />
         you photograph.
       </h1>
-      <p className="max-w-xl text-lg text-[var(--color-muted)]">
+      <p className="max-w-xl text-lg text-[var(--text-secondary)]">
         Ponder brings paintings, statues, landmarks, and everyday objects to
         life. Ask questions by voice. Watch story slides appear as they teach.
       </p>
       <Link
         href="/app"
-        className="rounded-[14px] bg-[var(--color-primary)] px-8 py-4 font-medium text-[var(--color-inverse)] transition hover:bg-[var(--color-primary-hover)]"
+        className="btn-primary px-8 py-4 font-semibold"
       >
         Open Ponder →
       </Link>
-      <p className="text-[13px] text-[var(--color-muted)]">
+      <p className="text-[13px] text-[var(--text-secondary)]">
         Free · 3 sessions/day · no install
       </p>
     </section>
@@ -117,16 +117,16 @@ function Cta() {
       id="cta"
       className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 py-24 text-center"
     >
-      <h2 className="font-[family-name:var(--font-display)] text-4xl">
+      <h2 className="font-[family-name:var(--font-display)] text-4xl font-extrabold text-[var(--text-heading)]">
         What will you interview first?
       </h2>
       <Link
         href="/app"
-        className="rounded-[14px] bg-[var(--color-primary)] px-8 py-4 font-medium text-[var(--color-inverse)] transition hover:bg-[var(--color-primary-hover)]"
+        className="btn-primary px-8 py-4 font-semibold"
       >
         Open Ponder →
       </Link>
-      <p className="text-[13px] text-[var(--color-muted)]">
+      <p className="text-[13px] text-[var(--text-secondary)]">
         Free · 3 sessions/day · no install
       </p>
     </section>
@@ -135,7 +135,7 @@ function Cta() {
 
 function Footer() {
   return (
-    <footer className="border-t border-[var(--color-border)] px-6 py-8 text-center text-[13px] text-[var(--color-muted)]">
+    <footer className="border-t border-[var(--border-default)] px-6 py-8 text-center text-[13px] text-[var(--text-secondary)]">
       Privacy · Contact · © 2026 Ponder
     </footer>
   );
@@ -152,10 +152,10 @@ function Section({
 }) {
   return (
     <section className="mx-auto max-w-5xl px-6 py-16">
-      <p className="mb-2 text-[13px] font-medium tracking-widest text-[var(--color-primary)]">
+      <p className="mb-2 font-[family-name:var(--font-display)] text-[11px] font-bold tracking-[0.08em] text-[var(--brand-primary)]">
         {eyebrow}
       </p>
-      <h2 className="mb-8 font-[family-name:var(--font-display)] text-3xl">
+      <h2 className="mb-8 font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--text-heading)]">
         {title}
       </h2>
       {children}
@@ -165,9 +165,9 @@ function Section({
 
 function Card({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-[16px] border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-      <h3 className="mb-2 text-lg font-semibold">{title}</h3>
-      <p className="text-[var(--color-muted)]">{body}</p>
+    <div className="card p-6">
+      <h3 className="mb-2 font-[family-name:var(--font-display)] text-lg font-bold text-[var(--text-heading)]">{title}</h3>
+      <p className="text-[var(--text-secondary)]">{body}</p>
     </div>
   );
 }
