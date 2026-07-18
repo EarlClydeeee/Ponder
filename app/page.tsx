@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import "./landing.css";
 
 const tickerItems = [
@@ -11,18 +12,42 @@ const tickerItems = [
 ];
 
 const useCases = [
-  ["🧸", "What if your favourite toy came alive?", "Talk to your toys", "A dinosaur, an action figure, a stuffed bear - each gets a voice, a personality, and time for every question.", "For kids"],
-  ["🖼️", "Wake up the Mona Lisa.", "Converse with great art", "Ask why she smiles, what Leonardo was like, or how it felt to disappear from the Louvre for two years.", "Art lovers"],
-  ["🦸", "Talk to your hero - for real.", "Meet the people you admire", "Point Ponder at Rizal, Marie Curie, or Einstein and have the conversation you always wished you could.", "History"],
-  ["🦕", "That fossil just opened its eyes.", "Bring museum visits alive", "Let an exhibit tell you about the world it lived in, the era that shaped it, and the story behind the glass.", "Explorers"],
-  ["🏛️", "Ask a landmark its secrets.", "Landmarks that talk back", "The Colosseum, the Parthenon, or the Rizal Monument can share centuries of memory in their own voice.", "Travel"],
-  ["🌿", "Your whole world is waking up.", "Explore anything around you", "A shell, a leaf, a textbook planet, or a circuit board. Anything with a story can become a conversation.", "The curious"],
+  ["/demo/assets/Teddy Bear.png", "What if your favourite toy came alive?", "Talk to your toys", "A dinosaur, an action figure, a stuffed bear - each gets a voice, a personality, and time for every question.", "For kids"],
+  ["/demo/assets/Painting.png", "Wake up the Mona Lisa.", "Converse with great art", "Ask why she smiles, what Leonardo was like, or how it felt to disappear from the Louvre for two years.", "Art lovers"],
+  ["/demo/assets/Hero Figure.png", "Talk to your hero - for real.", "Meet the people you admire", "Point Ponder at Rizal, Marie Curie, or Einstein and have the conversation you always wished you could.", "History"],
+  ["/demo/assets/Dinosaur.png", "That fossil just opened its eyes.", "Bring museum visits alive", "Let an exhibit tell you about the world it lived in, the era that shaped it, and the story behind the glass.", "Explorers"],
+  ["/demo/assets/Landmark.png", "Ask a landmark its secrets.", "Landmarks that talk back", "The Colosseum, the Parthenon, or the Rizal Monument can share centuries of memory in their own voice.", "Travel"],
+  ["/demo/assets/Leaf.png", "Your whole world is waking up.", "Explore anything around you", "A shell, a leaf, a textbook planet, or a circuit board. Anything with a story can become a conversation.", "The curious"],
 ];
 
 const foodSamples = [
   ["🥑", "Avocado", "Why are you good for me?", "I bring mostly monounsaturated fats, plus fibre and potassium. I make toast creamier while helping a meal feel satisfying.", "Healthy fats / Fibre"],
   ["🥚", "Egg", "What do you bring to breakfast?", "I pack complete protein, choline, and several vitamins into one small shell. I am simple, versatile, and built to fuel your morning.", "Protein / Choline"],
   ["🍌", "Banana", "Why do athletes pick you?", "My carbohydrates are easy to carry, and I contain potassium. That makes me a practical snack before or after moving your body.", "Carbohydrates / Potassium"],
+];
+
+const inspirationVideos = [
+  {
+    id: "7592599200542592286",
+    url: "https://www.tiktok.com/@usa_health_/video/7592599200542592286",
+    creator: "@usa_health_",
+    creatorUrl: "https://www.tiktok.com/@usa_health_?refer=embed",
+    caption: "Healthy food for your body",
+  },
+  {
+    id: "7611912928677154078",
+    url: "https://www.tiktok.com/@lawn.man18/video/7611912928677154078",
+    creator: "@lawn.man18",
+    creatorUrl: "https://www.tiktok.com/@lawn.man18?refer=embed",
+    caption: "Talking objects meet ASMR and everyday hacks",
+  },
+  {
+    id: "7607516925945711890",
+    url: "https://www.tiktok.com/@pinoy.ai76/video/7607516925945711890",
+    creator: "@pinoy.ai76",
+    creatorUrl: "https://www.tiktok.com/@pinoy.ai76?refer=embed",
+    caption: "Pinoy AI Story 1 - The Sink Wars",
+  },
 ];
 
 export default function LandingPage() {
@@ -33,6 +58,7 @@ export default function LandingPage() {
       <Ticker />
       <ConversationDemo />
       <UseCases />
+      <Inspiration />
       <SampleConversations />
       <HowItWorks />
       <FinalCta />
@@ -179,11 +205,48 @@ function UseCases() {
       <div className="landing-container">
         <Eyebrow>What to talk to</Eyebrow>
         <h2>Anything with a story<br />is waiting to <em>speak.</em></h2>
-        <div className="use-case-grid">{useCases.map(([icon, hook, title, description, tag]) => (
-          <article className="use-case-card" key={title}><span className="case-icon" aria-hidden="true">{icon}</span><p className="case-hook">{hook}</p><h3>{title}</h3><p>{description}</p><b>{tag}</b></article>
+        <div className="use-case-grid">{useCases.map(([asset, hook, title, description, tag]) => (
+          <article className="use-case-card" key={title}><span className="case-icon" aria-hidden="true"><Image className="case-icon-image" src={asset} alt="" width={512} height={288} /></span><p className="case-hook">{hook}</p><h3>{title}</h3><p>{description}</p><b>{tag}</b></article>
         ))}</div>
       </div>
     </section>
+  );
+}
+
+function Inspiration() {
+  return (
+    <section className="landing-section inspiration-section">
+      <div className="landing-container">
+        <div className="inspiration-heading">
+          <div>
+            <Eyebrow>The spark behind Ponder</Eyebrow>
+            <h2>Talking food made learning <em>impossible to scroll past.</em></h2>
+          </div>
+          <div>
+            <p>These playful AI videos turn everyday food into expressive characters. Nutrition becomes visual, funny, and memorable because the subject tells its own story.</p>
+            <p>Ponder takes that engaging idea one step further: instead of only watching, you can point your camera at something and have a real voice conversation with it.</p>
+          </div>
+        </div>
+        <div className="tiktok-grid">
+          {inspirationVideos.map((video) => <TikTokEmbed key={video.id} {...video} />)}
+        </div>
+      </div>
+      <Script id="tiktok-embed-script" src="https://www.tiktok.com/embed.js" strategy="lazyOnload" />
+    </section>
+  );
+}
+
+function TikTokEmbed({ id, url, creator, creatorUrl, caption }: { id: string; url: string; creator: string; creatorUrl: string; caption: string }) {
+  return (
+    <div className="tiktok-frame">
+      <blockquote className="tiktok-embed" cite={url} data-video-id={id}>
+        <section>
+          <a href={creatorUrl} target="_blank" rel="noreferrer" title={creator}>{creator}</a>
+          <p>{caption}</p>
+          <a href={url} target="_blank" rel="noreferrer">Watch on TikTok</a>
+        </section>
+      </blockquote>
+    </div>
   );
 }
 
