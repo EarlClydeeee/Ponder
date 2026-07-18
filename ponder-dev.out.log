@@ -8,7 +8,12 @@
    - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 5.9s
+ ✓ Ready in 2.6s
+ ○ Compiling /api/analyze-portrait ...
+ ✓ Compiled /api/analyze-portrait in 2.9s
+ POST /api/analyze-portrait 400 in 3556ms
+ POST /api/analyze-portrait 200 in 1674ms
  ○ Compiling /test/cam ...
- ✓ Compiled /test/cam in 4.8s
- GET /test/cam 200 in 5934ms
+ ✓ Compiled /test/cam in 3.9s
+ GET /test/cam 200 in 4489ms
+ POST /api/analyze-portrait 200 in 20454ms
