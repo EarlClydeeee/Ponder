@@ -87,6 +87,23 @@
 
 ---
 
+### Feature sandboxes (`app/test/<feature>`)
+
+To build in parallel without colliding on `/app`, each owner develops their
+feature as an **isolated route** first, then integrates the working version into
+`/app`. Sandboxes reuse the shared engine/hook/contracts (`src/engine/*`,
+`useLivingPortrait`, `types.ts`) — never fork them. `/test/*` routes are dev
+harnesses, never linked from `/app` or the landing page.
+
+| Route | Owner | Feature |
+|-------|-------|---------|
+| `/test/realtime` | David | Realtime WebRTC voice loop |
+| `/test/persona` · `/test/slides` | David / Shello | persona pre-pass · slide tool call |
+| `/test/camera` | Elton | capture + downscale → `awaken()` |
+| `/test/conversation` | Ivy | conversation UI against mocked hook state |
+
+Earl Clyde owns pulling each green sandbox into `/app`.
+
 ## 4. Named roles (decision owners)
 
 | Role | Person | Decides |
@@ -134,6 +151,7 @@ Paste signatures into `CONTRACT.md` at repo root.
 
 - Trunk-based: all five merge to `main` frequently; Earl Clyde resolves conflicts
 - Conflict hotspots: `LivingPortraitEngine.ts` (David only), `theme.ts` / `globals.css` (Ivy only), `app/api/*` (Shello only), `next.config.ts` / `package.json` (Earl Clyde only)
+- Build features in `app/test/<feature>`; only touch `/app` when integrating a green sandbox (keeps `/app` merge contention low)
 - PR rule: no PR merges without owner of touched hotspot as reviewer
 
 ---

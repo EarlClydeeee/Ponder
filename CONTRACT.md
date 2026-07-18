@@ -41,3 +41,11 @@ const { phase, subjectLabel, transcript, decks, activeDeck, error,
 - `app/globals.css`, `lib/theme.ts` — Ivy
 - `app/api/*` — Shello
 - `next.config.ts`, `package.json` — Earl Clyde
+
+## Feature sandboxes (`app/test/<feature>`)
+
+Build a new feature as an isolated route (`/test/realtime`, `/test/camera`, …)
+that consumes these C1–C6 contracts — never fork `types.ts` or copy the engine.
+Integrate into `/app` once it works; `/test/*` routes stay dev-only (not linked
+from `/app` or `/`). Owner→route map in
+[docs/plan-dev-workflow-curioframe.md](docs/plan-dev-workflow-curioframe.md).

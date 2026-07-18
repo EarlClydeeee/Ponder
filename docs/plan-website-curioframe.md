@@ -41,10 +41,13 @@
 │   ├── globals.css             # DSD tokens as CSS custom properties
 │   ├── app/
 │   │   └── page.tsx            # the product (/app) inside <MobileShell>
-│   └── api/
-│       ├── realtime-token/route.ts
-│       ├── analyze-portrait/route.ts
-│       └── generate-slides/route.ts
+│   ├── api/
+│   │   ├── realtime-token/route.ts
+│   │   ├── analyze-portrait/route.ts
+│   │   └── generate-slides/route.ts
+│   └── test/                   # feature sandboxes → /test/<feature>
+│       ├── realtime/page.tsx   #   built in isolation, integrated into /app
+│       └── camera/page.tsx     #   when green (not user-facing)
 ├── components/
 │   ├── landing/                # Navbar, HeroSection, ProblemSection,
 │   │                           # HowItWorksSection, ScienceSection,
@@ -61,6 +64,8 @@
 ```
 
 **Mobile Shell (`components/app/MobileShell.tsx`):** on viewports ≥768px, `/app` renders centered in a phone-ratio frame — max-width 390px, 9:19.5 aspect, rounded bezel, `--shadow-lg`, gallery-dark backdrop. On mobile viewports it fills the screen. See [dsd-curioframe.md §4](dsd-curioframe.md).
+
+**Feature sandboxes (`app/test/<feature>`):** build each feature as an isolated route (`/test/realtime`, `/test/camera`, …) that reuses the shared engine/hook/tokens, then integrate the working implementation into `/app`. `/test/*` routes are dev harnesses — never linked from `/app` or the landing page. Owner map in [plan-dev-workflow-curioframe.md](plan-dev-workflow-curioframe.md).
 
 ---
 
