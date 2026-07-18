@@ -37,6 +37,12 @@ export interface PersonaConfig {
 export type AwakenResult = {
   subjectLabel: string;
   subjectType: "artwork" | "portrait" | "object" | "animal" | "unknown";
+  /** Primary subject rectangle, normalized to the captured photo (0–1). */
+  subjectBounds: { x: number; y: number; width: number; height: number };
+  /** Whether a CSS face should be added to this capture. */
+  faceMode: "native_face" | "suggested_face" | "uncertain";
+  /** Vision-selected placement for a generated CSS face. */
+  facePlacement?: { x: number; y: number; scale: number; rotation: number };
   personaName: string;
   personaTone: string;
   greeting: string;
@@ -130,3 +136,75 @@ export interface AnalyzePortraitRequest {
 }
 
 export type AnalyzePortraitResponse = AwakenResult;
+
+// --- Persona-chat feature contracts (sandbox: /test/persona-chat) ---
+
+export type PersonaCategory =
+  | "artwork"
+  | "landmark"
+  | "food"
+  | "animal"
+  | "plant"
+  | "product"
+  | "vehicle"
+  | "building"
+  | "object"
+  | "other";
+
+export type IdentityConfidence = "high" | "medium" | "low";
+
+export interface PersonaProfile {
+  subjectLabel: string;
+  category: PersonaCategory;
+  identityConfidence: IdentityConfidence;
+  personality: {
+    traits: string[];
+    demeanor: string;
+    humorStyle: string;
+    quirks: string[];
+  };
+  speakingStyle: string;
+  /** Reserved for the later Realtime voice integration. */
+  voice: RealtimeVoice;
+  greeting: string;
+  /** First-person, fact-grounded narrative memories. */
+  memories: string[];
+  keyFacts: string[];
+  expertise: string[];
+  boundaries: string[];
+  /** Locked art direction for later slide generation. */
+  styleHint: string;
+  /** Deterministically composed by /api/generate-persona. */
+  systemPrompt: string;
+}
+
+export interface GeneratePersonaRequest {
+  photoDataUrl: string;
+}
+
+export type GeneratePersonaResponse = PersonaProfile;
+
+export interface PersonaCitation {
+  url: string;
+  title: string;
+}
+
+export interface PersonaChatRequest {
+  profile: PersonaProfile;
+  history: TranscriptTurn[];
+  userMessage: string;
+}
+
+export interface PersonaChatResponse {
+  reply: string;
+  usedWebSearch: boolean;
+  citations: PersonaCitation[];
+}
+
+/** App-level SSE events emitted by /api/persona-chat. */
+export type PersonaChatStreamEvent =
+  | { type: "delta"; delta: string }
+  | { type: "web_search" }
+  | { type: "citation"; citation: PersonaCitation }
+  | { type: "done"; response: PersonaChatResponse }
+  | { type: "error"; error: string };

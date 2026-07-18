@@ -16,6 +16,11 @@ Extra route: `POST /api/analyze-portrait` → `AwakenResult` (persona pre-pass).
 
 Speech-to-speech test harness (self-contained): [app/test/speech-to-speech/](app/test/speech-to-speech/) — not part of C1–C6; reintegrate piecemeal from there.
 
+- `POST /api/generate-persona` with `{ photoDataUrl }` → `PersonaProfile`.
+- `POST /api/persona-chat` with `{ profile, history, userMessage }` → SSE
+  `delta | web_search | citation | done | error`; `done` contains
+  `{ reply, usedWebSearch, citations[] }`.
+
 ## Engine public API (C2)
 
 ```ts

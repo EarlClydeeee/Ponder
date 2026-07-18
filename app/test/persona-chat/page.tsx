@@ -21,6 +21,7 @@ import { fileToDownscaledDataUrl } from "@/src/lib/image";
 interface ChatMessage extends TranscriptTurn {
   usedWebSearch?: boolean;
   citations?: PersonaCitation[];
+  streaming?: boolean;
 }
 
 export default function PersonaChatTestPage() {
@@ -83,26 +84,74 @@ export default function PersonaChatTestPage() {
       text: userMessage,
       at: new Date().toISOString(),
     };
+    const assistantId = crypto.randomUUID();
+    const assistantTurn: ChatMessage = {
+      id: assistantId,
+      role: "assistant",
+      text: "",
+      at: new Date().toISOString(),
+      streaming: true,
+      citations: [],
+    };
 
     setDraft("");
     setError(null);
     setIsSending(true);
-    setMessages((current) => [...current, userTurn]);
+    setMessages((current) => [...current, userTurn, assistantTurn]);
 
     try {
-      const response = await sendPersonaChat(profile, history, userMessage);
-      setMessages((current) => [
-        ...current,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          text: response.reply,
-          at: new Date().toISOString(),
-          usedWebSearch: response.usedWebSearch,
-          citations: response.citations,
+      const response = await sendPersonaChat(profile, history, userMessage, {
+        onDelta: (delta) => {
+          setMessages((current) =>
+            current.map((message) =>
+              message.id === assistantId
+                ? { ...message, text: message.text + delta }
+                : message,
+            ),
+          );
         },
-      ]);
+        onWebSearch: () => {
+          setMessages((current) =>
+            current.map((message) =>
+              message.id === assistantId
+                ? { ...message, usedWebSearch: true }
+                : message,
+            ),
+          );
+        },
+        onCitation: (citation) => {
+          setMessages((current) =>
+            current.map((message) => {
+              if (message.id !== assistantId) return message;
+              const citations = message.citations ?? [];
+              if (citations.some((item) => item.url === citation.url)) {
+                return message;
+              }
+              return { ...message, citations: [...citations, citation] };
+            }),
+          );
+        },
+      });
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === assistantId
+            ? {
+                ...message,
+                text: response.reply,
+                usedWebSearch: response.usedWebSearch,
+                citations: response.citations,
+                streaming: false,
+              }
+            : message,
+        ),
+      );
     } catch (caught) {
+      setMessages((current) =>
+        current.flatMap((message) => {
+          if (message.id !== assistantId) return [message];
+          return message.text ? [{ ...message, streaming: false }] : [];
+        }),
+      );
       setError(readableError(caught));
     } finally {
       setIsSending(false);
@@ -199,7 +248,7 @@ export default function PersonaChatTestPage() {
                   <MessageBubble key={message.id} message={message} />
                 ))}
 
-                {isSending && (
+                {isSending && !messages.some((message) => message.streaming) && (
                   <div className="flex justify-start" role="status">
                     <div className="rounded-2xl rounded-bl-sm border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm text-[var(--color-muted)]">
                       {profile.subjectLabel} is thinking…
@@ -423,17 +472,25 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <article
+        aria-busy={message.streaming || undefined}
         className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 ${
           isUser
             ? "rounded-br-sm bg-[var(--color-border)] text-[var(--color-text)]"
             : "rounded-bl-sm border border-[var(--color-border)] bg-[var(--color-surface)]"
         }`}
       >
-        <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{message.text}</p>
+        <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">
+          {message.text || (message.streaming ? "Thinking..." : "")}
+          {message.streaming && message.text && (
+            <span aria-hidden="true" className="text-[var(--color-primary)]">
+              {" |"}
+            </span>
+          )}
+        </p>
 
         {message.usedWebSearch && (
           <span className="mt-3 inline-flex rounded-full border border-[var(--color-primary)] px-2 py-1 text-xs text-[var(--color-primary)]">
-            Searched the web
+            {message.streaming ? "Searching the web..." : "Searched the web"}
           </span>
         )}
 

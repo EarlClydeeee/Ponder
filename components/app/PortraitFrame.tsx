@@ -4,6 +4,7 @@
  * Owner: Ivy.
  */
 import Image from "next/image";
+import type { CSSProperties } from "react";
 import type { AwakenResult, PortraitPhase } from "@/src/engine/types";
 
 interface Props {
@@ -14,7 +15,12 @@ interface Props {
   /** Optional pre-pass copy for the isolated capture-to-awaken flow. */
   awakenResult?: Pick<
     AwakenResult,
-    "personaName" | "greeting" | "animationStyle"
+    | "personaName"
+    | "greeting"
+    | "animationStyle"
+    | "subjectBounds"
+    | "faceMode"
+    | "facePlacement"
   > | null;
   /** Overrides the engine phase label while the camera harness is awakening. */
   status?: string;
@@ -42,6 +48,8 @@ export function PortraitFrame({
   const statusLabel = status ?? STATE_LABEL[phase];
   const animationStyle = awakenResult?.animationStyle ?? "parallax";
   const useAwakenPresentation = Boolean(awakenResult);
+  const showLivingFace =
+    awakenResult?.faceMode === "suggested_face" && awakenResult.facePlacement !== undefined;
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -76,6 +84,7 @@ export function PortraitFrame({
         {alive && useAwakenPresentation && (
           <div className="pointer-events-none portrait-light-overlay" aria-hidden="true" />
         )}
+        {alive && showLivingFace && <LivingFace placement={awakenResult.facePlacement!} />}
       </div>
       {statusLabel && (
         <p aria-live="polite" className="text-[13px] font-medium text-[var(--color-accent)]">
@@ -92,6 +101,26 @@ export function PortraitFrame({
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function LivingFace({ placement }: { placement: NonNullable<AwakenResult["facePlacement"]> }) {
+  return (
+    <div
+      className="pointer-events-none absolute"
+      aria-hidden="true"
+      style={{
+        left: `${placement.x * 100}%`,
+        top: `${placement.y * 100}%`,
+        transform: `translate(-50%, -50%) rotate(${placement.rotation}deg)`,
+        "--living-face-size": `${48 * placement.scale}px`,
+      } as CSSProperties}
+    >
+      <div className="living-face">
+        <div className="living-face__eyes"><span /><span /></div>
+        <span className="living-face__smile" />
+      </div>
     </div>
   );
 }
