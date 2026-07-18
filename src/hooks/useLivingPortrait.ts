@@ -111,7 +111,8 @@ export function useLivingPortrait(): LivingPortraitState {
     decks,
     activeDeck,
     error,
-    talkEnabled: phase === "alive" || phase === "listening",
+    talkEnabled:
+      phase === "alive" || phase === "listening" || phase === "speaking",
     amplitude,
     awakenResult,
     awaken,

@@ -201,13 +201,15 @@ export class LivingPortraitEngine {
 
   startListening(): void {
     if (!this.realtime) return;
+    // Barge-in: holding talk while the portrait speaks cancels its response.
+    if (this.phase === "speaking") this.realtime.cancelResponse();
     void this.animator.resume();
     this.realtime.startListening();
     this.setPhase("listening");
   }
 
   stopListening(): void {
-    if (!this.realtime) return;
+    if (!this.realtime || this.phase !== "listening") return;
     this.realtime.stopListening();
     this.setPhase("alive");
   }
@@ -222,6 +224,7 @@ export class LivingPortraitEngine {
       return;
     }
 
+    if (this.phase === "speaking") this.realtime?.cancelResponse();
     this.realtime?.sendText(trimmed);
   }
 

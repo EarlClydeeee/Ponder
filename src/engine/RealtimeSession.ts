@@ -149,6 +149,11 @@ export class RealtimeSession {
     }
   }
 
+  /** Barge-in: stop the in-flight assistant response (and its audio). */
+  cancelResponse(): void {
+    this.send({ type: "response.cancel" });
+  }
+
   startListening(): void {
     this.send({ type: "input_audio_buffer.clear" });
     if (this.micTrack) this.micTrack.enabled = true;

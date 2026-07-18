@@ -27,14 +27,14 @@ export function TalkButton({
   const holdingRef = useRef(false);
 
   const label = speaking
-    ? "Speaking…"
+    ? "Hold to interrupt"
     : listening
       ? "Release to send"
       : "Hold to talk";
 
   function handleDown(e: React.PointerEvent<HTMLButtonElement>) {
     e.preventDefault();
-    if (!enabled || speaking) return;
+    if (!enabled) return;
     holdingRef.current = true;
     e.currentTarget.setPointerCapture(e.pointerId);
     onStart();
@@ -47,19 +47,20 @@ export function TalkButton({
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
-    if (listening) onStop();
+    // Engine no-ops unless actually listening, so releasing is always safe.
+    onStop();
   }
 
   return (
     <div className="flex flex-col items-center gap-2">
       <button
         type="button"
-        disabled={!enabled || speaking}
+        disabled={!enabled}
         onPointerDown={handleDown}
         onPointerUp={handleUp}
         onPointerCancel={handleUp}
         onLostPointerCapture={() => {
-          if (holdingRef.current && listening) {
+          if (holdingRef.current) {
             holdingRef.current = false;
             onStop();
           }
