@@ -35,18 +35,18 @@ const inspirationVideos = [
     caption: "Healthy food for your body",
   },
   {
-    id: "7601609989760847126",
-    url: "https://www.tiktok.com/@foodfactssss/video/7601609989760847126",
-    creator: "@foodfactssss",
-    creatorUrl: "https://www.tiktok.com/@foodfactssss?refer=embed",
-    caption: "Favourite fruits come to life",
+    id: "7611912928677154078",
+    url: "https://www.tiktok.com/@lawn.man18/video/7611912928677154078",
+    creator: "@lawn.man18",
+    creatorUrl: "https://www.tiktok.com/@lawn.man18?refer=embed",
+    caption: "Talking objects meet ASMR and everyday hacks",
   },
   {
-    id: "7606611939350875408",
-    url: "https://www.tiktok.com/@hecticproductions/video/7606611939350875408",
-    creator: "@hecticproductions",
-    creatorUrl: "https://www.tiktok.com/@hecticproductions?refer=embed",
-    caption: "When healthy food tries to argue",
+    id: "7607516925945711890",
+    url: "https://www.tiktok.com/@pinoy.ai76/video/7607516925945711890",
+    creator: "@pinoy.ai76",
+    creatorUrl: "https://www.tiktok.com/@pinoy.ai76?refer=embed",
+    caption: "Pinoy AI Story 1 - The Sink Wars",
   },
 ];
 
