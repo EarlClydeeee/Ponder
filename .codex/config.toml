@@ -9,6 +9,8 @@
 # (This machine's ~/.codex/config.toml already defines a global `playwright`
 # server, so Codex works here regardless; this file is for fresh clones.)
 
+# Headed browser + 800ms slow-mo so you can watch it drive (see
+# playwright-mcp.config.json). Path is relative to the project root.
 [mcp_servers.playwright]
 command = "npx"
-args = ["@playwright/mcp@latest"]
+args = ["@playwright/mcp@latest", "--config", "playwright-mcp.config.json"]
