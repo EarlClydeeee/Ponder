@@ -1,6 +1,7 @@
 /**
  * POST /api/generate-persona -> PersonaProfile
- * High-reasoning Responses API vision pass with strict structured output.
+ * Responses API vision pass with strict structured output. Model, reasoning,
+ * and image detail are env-tunable for cheap local iteration vs production.
  * Owner: Shello (route), David (persona contract and prompt).
  */
 import { NextResponse } from "next/server";
@@ -12,7 +13,18 @@ import type {
   RealtimeVoice,
 } from "@/src/engine/types";
 
-const PERSONA_MODEL = process.env.PERSONA_MODEL ?? "gpt-5.6";
+type ReasoningEffort = "none" | "low" | "medium" | "high" | "xhigh";
+type ImageDetail = "low" | "high" | "auto" | "original";
+
+const PERSONA_MODEL = process.env.PERSONA_MODEL ?? "gpt-5.4-mini";
+const PERSONA_REASONING_EFFORT = readReasoningEffort(
+  process.env.PERSONA_REASONING_EFFORT,
+  "low",
+);
+const PERSONA_IMAGE_DETAIL = readImageDetail(
+  process.env.PERSONA_IMAGE_DETAIL,
+  "low",
+);
 
 const CATEGORIES: PersonaCategory[] = [
   "artwork",
@@ -167,7 +179,7 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         model: PERSONA_MODEL,
-        reasoning: { effort: "high" },
+        reasoning: { effort: PERSONA_REASONING_EFFORT },
         store: false,
         input: [
           {
@@ -177,7 +189,7 @@ export async function POST(req: Request) {
               {
                 type: "input_image",
                 image_url: body.photoDataUrl,
-                detail: "high",
+                detail: PERSONA_IMAGE_DETAIL,
               },
             ],
           },
@@ -310,6 +322,31 @@ function extractRefusal(data: unknown): string {
 
 function readableError(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown persona generation error";
+}
+
+function readReasoningEffort(
+  value: string | undefined,
+  fallback: ReasoningEffort,
+): ReasoningEffort {
+  return value === "none" ||
+    value === "low" ||
+    value === "medium" ||
+    value === "high" ||
+    value === "xhigh"
+    ? value
+    : fallback;
+}
+
+function readImageDetail(
+  value: string | undefined,
+  fallback: ImageDetail,
+): ImageDetail {
+  return value === "low" ||
+    value === "high" ||
+    value === "auto" ||
+    value === "original"
+    ? value
+    : fallback;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
