@@ -54,8 +54,15 @@ export function useLivingPortrait(): LivingPortraitState {
       setPhase(p);
       setSubjectLabel(engine.getSubjectLabel());
     });
+    // Upsert by id: placeholders fill in and streamed replies grow in place.
     const offTranscript = engine.on("transcript", (turn) =>
-      setTranscript((prev) => [...prev, turn]),
+      setTranscript((prev) => {
+        const i = prev.findIndex((t) => t.id === turn.id);
+        if (i === -1) return [...prev, turn];
+        const next = prev.slice();
+        next[i] = turn;
+        return next;
+      }),
     );
     const offSlides = engine.on("slides", (deck) =>
       setDecks((prev) => {

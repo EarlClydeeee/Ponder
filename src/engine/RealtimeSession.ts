@@ -15,6 +15,8 @@ export interface RealtimeConnectOptions {
 interface RealtimeCallbacks {
   onRemoteStream: (stream: MediaStream) => void;
   onUserTranscript: (text: string) => void;
+  /** Fires when the user's speech could not be transcribed at all. */
+  onUserTranscriptFailed?: () => void;
   onAssistantTranscript: (text: string, final: boolean) => void;
   onSpeakingStart?: () => void;
   onSpeakingEnd?: () => void;
@@ -28,6 +30,10 @@ export class RealtimeSession {
   private micStream: MediaStream | null = null;
   private micTrack: MediaStreamTrack | null = null;
   private assistantPartial = "";
+  /** Per-item user transcription deltas, keyed by conversation item id. */
+  private userPartials = new Map<string, string>();
+  /** Whether the current response's audio has started playing out. */
+  private audioStarted = false;
 
   constructor(private callbacks: RealtimeCallbacks) {}
 
@@ -116,8 +122,32 @@ export class RealtimeSession {
 
   private handleEvent(event: Record<string, unknown>): void {
     switch (event.type) {
-      case "conversation.item.input_audio_transcription.completed":
-        this.callbacks.onUserTranscript(String(event.transcript ?? ""));
+      case "conversation.item.input_audio_transcription.delta": {
+        const itemId = String(event.item_id ?? "");
+        this.userPartials.set(
+          itemId,
+          (this.userPartials.get(itemId) ?? "") + String(event.delta ?? ""),
+        );
+        break;
+      }
+      case "conversation.item.input_audio_transcription.completed": {
+        const itemId = String(event.item_id ?? "");
+        // Prefer the final transcript; fall back to accumulated deltas so the
+        // user's words still display if the completed event arrives empty.
+        const text =
+          String(event.transcript ?? "").trim() ||
+          (this.userPartials.get(itemId) ?? "").trim();
+        this.userPartials.delete(itemId);
+        if (text) {
+          this.callbacks.onUserTranscript(text);
+        } else {
+          this.callbacks.onUserTranscriptFailed?.();
+        }
+        break;
+      }
+      case "conversation.item.input_audio_transcription.failed":
+        this.userPartials.delete(String(event.item_id ?? ""));
+        this.callbacks.onUserTranscriptFailed?.();
         break;
       case "response.audio_transcript.delta":
       case "response.output_audio_transcript.delta": {
@@ -133,10 +163,24 @@ export class RealtimeSession {
         this.callbacks.onAssistantTranscript(String(event.transcript ?? ""), true);
         break;
       case "response.created":
+        this.audioStarted = false;
         this.callbacks.onSpeakingStart?.();
         break;
-      case "response.done":
+      // WebRTC-only events tracking actual audio playout — speech ends when
+      // the audio stops, not when generation completes (which is earlier).
+      case "output_audio_buffer.started":
+        this.audioStarted = true;
+        this.callbacks.onSpeakingStart?.();
+        break;
+      case "output_audio_buffer.stopped":
+      case "output_audio_buffer.cleared":
+        this.audioStarted = false;
         this.callbacks.onSpeakingEnd?.();
+        break;
+      case "response.done":
+        // Only end "speaking" here if no audio ever started (e.g. an early
+        // cancel or a failed response); otherwise wait for the buffer events.
+        if (!this.audioStarted) this.callbacks.onSpeakingEnd?.();
         break;
       case "error":
         this.callbacks.onError?.(
@@ -149,9 +193,14 @@ export class RealtimeSession {
     }
   }
 
-  /** Barge-in: stop the in-flight assistant response (and its audio). */
+  /**
+   * Barge-in: cancel generation AND flush the WebRTC output audio buffer.
+   * Generation finishes ahead of playback, so response.cancel alone leaves
+   * already-generated audio playing; output_audio_buffer.clear stops it.
+   */
   cancelResponse(): void {
     this.send({ type: "response.cancel" });
+    this.send({ type: "output_audio_buffer.clear" });
   }
 
   startListening(): void {
@@ -191,5 +240,7 @@ export class RealtimeSession {
     this.dc = null;
     this.pc = null;
     this.assistantPartial = "";
+    this.userPartials.clear();
+    this.audioStarted = false;
   }
 }

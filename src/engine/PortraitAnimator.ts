@@ -16,6 +16,10 @@ export class PortraitAnimator {
     return this.output.resume();
   }
 
+  setMuted(muted: boolean): void {
+    this.output.setMuted(muted);
+  }
+
   subscribe(onAmplitude: (level: number) => void): () => void {
     return this.output.subscribe(onAmplitude);
   }

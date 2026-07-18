@@ -42,8 +42,9 @@ export function ConversationScreen({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    // Depend on the array itself: streamed updates change content, not length.
     scrollRef.current?.scrollTo({ top: 9e9, behavior: "smooth" });
-  }, [transcript.length]);
+  }, [transcript]);
 
   const inFallback = phase === "fallback_text";
 
@@ -63,35 +64,74 @@ export function ConversationScreen({
         </button>
       </div>
 
-      {/* Portrait ~55% */}
-      <div className="px-4">
+      {/* Portrait — capped so the conversation below always has room */}
+      <div className="mx-auto w-full max-w-[34dvh] px-4">
         <PortraitFrame
           photoUrl={photoUrl}
           phase={phase}
           subjectLabel={subjectLabel}
           amplitude={amplitude}
           awakenResult={awakenResult}
+          showIntroCard={false}
         />
       </div>
 
-      {/* Transcript + slides ~30% */}
-      <div className="flex min-h-0 flex-1 flex-col gap-2 px-4 py-2">
+      {/* Conversation + slides */}
+      <div className="flex min-h-0 flex-1 flex-col gap-1.5 px-4 pb-2 pt-3">
+        <div className="flex shrink-0 items-center justify-between px-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-muted)]">
+            Conversation
+          </p>
+          <p className="flex items-center gap-1.5 text-[10px] font-semibold text-[var(--color-muted)]">
+            {inFallback ? (
+              <>Text mode</>
+            ) : (
+              <>
+                <span
+                  className="h-1.5 w-1.5 rounded-full bg-[var(--color-green-400)]"
+                  aria-hidden="true"
+                />
+                Live
+              </>
+            )}
+          </p>
+        </div>
         <div
           ref={scrollRef}
-          className="min-h-0 flex-1 space-y-2 overflow-y-auto text-[13px]"
+          className="chat-scroll min-h-24 flex-1 space-y-1.5 overflow-y-auto rounded-[16px] border border-[var(--color-border)] bg-[var(--color-surface)] p-3.5 text-[13px] shadow-[var(--shadow-card)]"
         >
-          {transcript.map((turn) => (
-            <p
-              key={turn.id}
-              className={
-                turn.role === "user"
-                  ? "text-right text-[var(--color-muted)]"
-                  : "text-[var(--color-text)]"
-              }
-            >
-              {turn.text}
+          {transcript.length === 0 && (
+            <p className="py-4 text-center text-[var(--color-muted)]">
+              Say hello — everything you both say shows up here.
             </p>
-          ))}
+          )}
+          {transcript.map((turn, i) => {
+            const isUser = turn.role === "user";
+            const groupStart = i === 0 || transcript[i - 1].role !== turn.role;
+            return (
+              <div
+                key={turn.id}
+                className={`flex flex-col ${isUser ? "items-end" : "items-start"} ${
+                  groupStart && i > 0 ? "pt-2.5" : ""
+                }`}
+              >
+                {groupStart && (
+                  <span className="mb-1 px-1.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--color-muted)]">
+                    {isUser ? "You" : subjectLabel || "Portrait"}
+                  </span>
+                )}
+                <p
+                  className={`max-w-[82%] whitespace-pre-wrap rounded-[16px] px-3.5 py-2 leading-5 ${
+                    isUser
+                      ? "rounded-br-[6px] bg-[var(--color-primary)] text-[var(--color-inverse)]"
+                      : "rounded-bl-[6px] border border-[var(--color-honey-border)] bg-[var(--color-honey-100)] text-[var(--color-text)]"
+                  } ${turn.text === "…" ? "animate-pulse" : ""}`}
+                >
+                  {turn.text}
+                </p>
+              </div>
+            );
+          })}
         </div>
         <div className="h-24 shrink-0">
           <SlideCarousel deck={activeDeck} />

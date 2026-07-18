@@ -68,6 +68,13 @@ body {
   background: linear-gradient(115deg, transparent 34%, var(--color-honey-100) 50%, transparent 66%);
   animation: portrait-light 6000ms ease-in-out infinite;
 }
+/* Slim chat scrollbar for the conversation panel. */
+.chat-scroll { scrollbar-width: thin; scrollbar-color: var(--color-cream-3) transparent; }
+.chat-scroll::-webkit-scrollbar { width: 6px; }
+.chat-scroll::-webkit-scrollbar-track { background: transparent; }
+.chat-scroll::-webkit-scrollbar-thumb { border-radius: var(--radius-full); background: var(--color-cream-3); }
+.chat-scroll::-webkit-scrollbar-thumb:hover { background: var(--color-brown-300); }
+
 /* Living face — landing-page idiom: warm honey glow, cartoon eyes, big
    amplitude-driven mouth. --living-face-mouth (0..1) is set inline by
    PortraitFrame from the live voice amplitude while the portrait speaks. */

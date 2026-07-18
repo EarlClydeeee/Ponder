@@ -40,6 +40,10 @@ engine.sendText(text: string): void
 engine.regenerateSlides(deckId: string): Promise<void>
 engine.endSession(): void
 engine.on(event, handler): () => void   // 'phase' | 'transcript' | 'slides' | 'error' | 'face'
+// 'transcript' events UPSERT by turn id: the same id may fire repeatedly with
+// growing text (streamed replies, placeholder user turns filling in after
+// Whisper). Consumers must replace an existing turn with a matching id, not
+// blindly append (useLivingPortrait's reducer does this).
 ```
 
 ## Hook shape (C3)

@@ -24,6 +24,8 @@ interface Props {
   > | null;
   /** Overrides the engine phase label while the camera harness is awakening. */
   status?: string;
+  /** Hide the name/greeting card (conversation shows it in the thread). */
+  showIntroCard?: boolean;
 }
 
 const STATE_LABEL: Partial<Record<PortraitPhase, string>> = {
@@ -41,6 +43,7 @@ export function PortraitFrame({
   amplitude,
   awakenResult,
   status,
+  showIntroCard = true,
 }: Props) {
   const alive = phase !== "idle" && phase !== "analyzing";
   const awakening = phase === "connecting" || phase === "analyzing";
@@ -97,7 +100,7 @@ export function PortraitFrame({
           {statusLabel}
         </p>
       )}
-      {awakenResult && (
+      {awakenResult && showIntroCard && (
         <div className="w-full rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-center shadow-[var(--shadow-sm)]">
           <p className="text-[13px] font-semibold text-[var(--color-primary)]">
             {awakenResult.personaName}

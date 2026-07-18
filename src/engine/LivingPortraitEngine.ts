@@ -71,6 +71,10 @@ export class LivingPortraitEngine {
   private faceResult: AwakenResult | null = null;
   private realtime: RealtimeSession | null = null;
   private transcript: TranscriptTurn[] = [];
+  /** FIFO of placeholder user turns awaiting their Whisper transcription. */
+  private pendingUserTurnIds: string[] = [];
+  /** Live assistant turn receiving streamed transcript deltas. */
+  private assistantTurnId: string | null = null;
   readonly animator = new PortraitAnimator();
 
   on<E extends keyof EngineEvents>(event: E, handler: Handler<E>): () => void {
@@ -145,9 +149,39 @@ export class LivingPortraitEngine {
         this.animator.attach(stream);
         void this.animator.resume();
       },
-      onUserTranscript: (text) => this.recordTurn("user", text),
+      onUserTranscript: (text) => {
+        // Fill the placeholder bubble created at talk-button release.
+        const pendingId = this.pendingUserTurnIds.shift();
+        this.emitTurn(
+          { id: pendingId ?? crypto.randomUUID(), role: "user", text },
+          true,
+        );
+      },
+      onUserTranscriptFailed: () => {
+        const pendingId = this.pendingUserTurnIds.shift();
+        if (pendingId) {
+          this.emitTurn(
+            {
+              id: pendingId,
+              role: "user",
+              text: "(didn't catch that — hold the button and try again)",
+            },
+            false,
+          );
+        }
+      },
       onAssistantTranscript: (text, final) => {
-        if (final) this.recordTurn("assistant", text);
+        // Stream partials into one live bubble; persist only the final text.
+        if (!text.trim()) {
+          if (final) this.assistantTurnId = null;
+          return;
+        }
+        if (!this.assistantTurnId) this.assistantTurnId = crypto.randomUUID();
+        this.emitTurn(
+          { id: this.assistantTurnId, role: "assistant", text },
+          final,
+        );
+        if (final) this.assistantTurnId = null;
       },
       onSpeakingStart: () => {
         if (this.phase !== "listening") this.setPhase("speaking");
@@ -164,6 +198,9 @@ export class LivingPortraitEngine {
           });
         }
       },
+      // Surface server-side event errors (e.g. an unsupported client event)
+      // in the console so interruption issues are diagnosable in the field.
+      onError: (message) => console.warn("[realtime] server error:", message),
     });
 
     try {
@@ -205,8 +242,11 @@ export class LivingPortraitEngine {
 
   startListening(): void {
     if (!this.realtime) return;
-    // Barge-in: holding talk while the portrait speaks cancels its response.
-    if (this.phase === "speaking") this.realtime.cancelResponse();
+    // Barge-in, unconditionally: cancel any response and HARD-MUTE playback
+    // locally. Phase can lag real audio (generation finishes before playout),
+    // so never gate the interrupt on phase === "speaking".
+    this.realtime.cancelResponse();
+    this.animator.setMuted(true);
     void this.animator.resume();
     this.realtime.startListening();
     this.setPhase("listening");
@@ -214,7 +254,14 @@ export class LivingPortraitEngine {
 
   stopListening(): void {
     if (!this.realtime || this.phase !== "listening") return;
+    // Unmute for the upcoming reply (muted since the barge-in press).
+    this.animator.setMuted(false);
     this.realtime.stopListening();
+    // Show the user's turn immediately, in order, ahead of the reply;
+    // the Whisper transcription fills it in about a second later.
+    const id = crypto.randomUUID();
+    this.pendingUserTurnIds.push(id);
+    this.emitTurn({ id, role: "user", text: "…" }, false);
     this.setPhase("alive");
   }
 
@@ -228,7 +275,9 @@ export class LivingPortraitEngine {
       return;
     }
 
-    if (this.phase === "speaking") this.realtime?.cancelResponse();
+    // Interrupt unconditionally — phase can lag the actual audio playout.
+    this.realtime?.cancelResponse();
+    this.animator.setMuted(false);
     this.realtime?.sendText(trimmed);
   }
 
@@ -244,6 +293,8 @@ export class LivingPortraitEngine {
     this.profile = null;
     this.faceResult = null;
     this.transcript = [];
+    this.pendingUserTurnIds = [];
+    this.assistantTurnId = null;
     this.setPhase("idle");
   }
 
@@ -293,10 +344,17 @@ export class LivingPortraitEngine {
    */
   private async sendFallbackChat(userMessage: string): Promise<void> {
     if (!this.profile) return;
+    const history = this.transcript.slice(0, -1);
+    const turnId = crypto.randomUUID();
+    let streamed = "";
     try {
-      const history = this.transcript.slice(0, -1);
-      const res = await sendPersonaChat(this.profile, history, userMessage);
-      this.recordTurn("assistant", res.reply);
+      const res = await sendPersonaChat(this.profile, history, userMessage, {
+        onDelta: (delta) => {
+          streamed += delta;
+          this.emitTurn({ id: turnId, role: "assistant", text: streamed }, false);
+        },
+      });
+      this.emitTurn({ id: turnId, role: "assistant", text: res.reply }, true);
     } catch {
       // Stay in fallback_text — surface the error without a phase change.
       this.emit("error", {
@@ -309,15 +367,24 @@ export class LivingPortraitEngine {
 
   private recordTurn(role: TranscriptTurn["role"], text: string): void {
     if (!text.trim()) return;
-    const turn: TranscriptTurn = {
-      id: crypto.randomUUID(),
-      role,
-      text,
-      at: new Date().toISOString(),
-    };
-    this.transcript.push(turn);
-    this.emit("transcript", turn);
-    sessionStore.appendTurn(this.sessionId, turn);
+    this.emitTurn({ id: crypto.randomUUID(), role, text }, true);
+  }
+
+  /**
+   * Insert or update a transcript turn (matched by id) and notify the UI.
+   * The hook's reducer upserts by id, which is what lets placeholders fill
+   * in and streamed replies grow inside a single bubble.
+   */
+  private emitTurn(
+    turn: Omit<TranscriptTurn, "at">,
+    persist: boolean,
+  ): void {
+    const full: TranscriptTurn = { ...turn, at: new Date().toISOString() };
+    const i = this.transcript.findIndex((t) => t.id === full.id);
+    if (i === -1) this.transcript.push(full);
+    else this.transcript[i] = full;
+    this.emit("transcript", full);
+    if (persist) sessionStore.appendTurn(this.sessionId, full);
   }
 
   private persistShell(photoDataUrl: string): void {

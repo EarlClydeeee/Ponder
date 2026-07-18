@@ -6,6 +6,7 @@
 export class RealtimeAudioOutput {
   private ctx: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
+  private gain: GainNode | null = null;
   private audioEl: HTMLAudioElement | null = null;
   private raf = 0;
   private buffer: Uint8Array<ArrayBuffer> | null = null;
@@ -19,13 +20,23 @@ export class RealtimeAudioOutput {
     this.analyser.fftSize = 256;
     this.buffer = new Uint8Array(this.analyser.frequencyBinCount);
     source.connect(this.analyser);
-    source.connect(this.ctx.destination);
+    // Route playback through a gain node so barge-in can hard-mute locally
+    // without touching the analyser branch.
+    this.gain = this.ctx.createGain();
+    source.connect(this.gain);
+    this.gain.connect(this.ctx.destination);
 
     this.audioEl = document.createElement("audio");
     this.audioEl.autoplay = true;
     this.audioEl.setAttribute("playsinline", "true");
     this.audioEl.srcObject = stream;
     void this.audioEl.play().catch(() => {});
+  }
+
+  /** Hard local mute — covers BOTH playback paths (Web Audio + element). */
+  setMuted(muted: boolean): void {
+    if (this.gain) this.gain.gain.value = muted ? 0 : 1;
+    if (this.audioEl) this.audioEl.muted = muted;
   }
 
   /** Resume suspended AudioContext after a user gesture. */
@@ -63,6 +74,7 @@ export class RealtimeAudioOutput {
     this.ctx?.close().catch(() => {});
     this.ctx = null;
     this.analyser = null;
+    this.gain = null;
     this.buffer = null;
   }
 }
