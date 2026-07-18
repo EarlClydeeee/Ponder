@@ -66,6 +66,7 @@ src/engine/     LivingPortraitEngine, RealtimeSession (WebRTC), PersonaAnalyzer,
 src/hooks/      useLivingPortrait          src/lib/  image downscale
 components/app/ MobileShell, CaptureScreen, ConversationScreen, PortraitFrame,
                 TalkButton, SlideCarousel
+app/test/<feat> isolated feature harnesses → /test/<feat>, integrated into /app when green
 lib/theme.ts    DSD tokens for TS          app/globals.css  DSD tokens as CSS vars
 ```
 
@@ -118,10 +119,30 @@ These are the rules that keep the architecture intact — follow them:
     [src/lib/image.ts](src/lib/image.ts).
 12. **Match the surrounding code** — every module has a header comment naming its
     owner and the doc section it implements; keep that convention.
+13. **Building a new feature? Start in `app/test/<feature>`** — validate it in an
+    isolated route, then integrate into `/app`. See *Feature sandboxes* below.
 
 General engineering hygiene: prefer editing existing files and reusing patterns
 over adding new ones; keep changes small and focused; don't add dependencies
 without a reason; leave the tree building and lint-clean at commit time.
+
+## Feature sandboxes — `app/test/<feature>`
+
+Five people build in parallel, so **don't develop new features directly in
+`/app`.** Build each one as an isolated route first, then integrate.
+
+- **Location:** `app/test/<feature-name>/page.tsx` → reachable at
+  `/test/<feature-name>` (e.g. `/test/realtime`, `/test/camera`, `/test/slides`,
+  `/test/persona`).
+- **Reuse shared code** — import from `src/engine/*`,
+  `src/hooks/useLivingPortrait`, `lib/theme.ts`. Don't fork `types.ts` or copy the
+  engine; a sandbox is a harness, not a private branch of the code.
+- **Keep it isolated** — a `/test/*` route must not be imported by `/app` or the
+  landing page. `/app` stays the single integration target.
+- **Integrate when green** — once it works in its sandbox, wire it into `/app`
+  (or the relevant `components/app/*`); keep the test route as a regression
+  harness or delete it.
+- **Not user-facing** — never link `/test/*` from `/app` or `/`.
 
 ## Ownership hotspots (don't cross-edit without the owner)
 
