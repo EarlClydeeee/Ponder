@@ -1,14 +1,8 @@
-/**
- * C4 — POST /api/realtime-token → { token, session_id }
- * Mints an ephemeral OpenAI Realtime client secret (GA API) so the browser
- * can open WebRTC without ever seeing the real key (SDD §5).
- * Owner: Shello.
- */
 import { NextResponse } from "next/server";
 import {
   REALTIME_CLIENT_SECRETS_URL,
   REALTIME_MODEL,
-} from "@/src/engine/realtimeConfig";
+} from "../../lib/config";
 
 export async function POST() {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -26,10 +20,7 @@ export async function POST() {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      session: {
-        type: "realtime",
-        model: REALTIME_MODEL,
-      },
+      session: { type: "realtime", model: REALTIME_MODEL },
     }),
   });
 

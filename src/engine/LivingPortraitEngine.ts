@@ -12,7 +12,7 @@
 import { analyzePortrait } from "./PersonaAnalyzer";
 import { PortraitAnimator } from "./PortraitAnimator";
 import { RealtimeSession } from "./RealtimeSession";
-import { sessionStore, DAILY_FREE_SESSIONS } from "./sessionStore";
+import { sessionStore } from "./sessionStore";
 import { SlideDeckCoordinator } from "./SlideDeckCoordinator";
 import type {
   AwakenConfig,
@@ -74,16 +74,6 @@ export class LivingPortraitEngine {
   }
 
   async awaken(config: AwakenConfig): Promise<void> {
-    // Enforce the free-tier daily cap before spending any tokens.
-    if (sessionStore.usageToday() >= DAILY_FREE_SESSIONS) {
-      this.fail({
-        code: "daily_limit",
-        message: `Free tier is ${DAILY_FREE_SESSIONS} sessions/day. Come back tomorrow or go Pro.`,
-        recoverable: false,
-      });
-      return;
-    }
-
     this.sessionId = config.sessionId ?? crypto.randomUUID();
 
     // 1. ANALYZING — persona pre-pass.
@@ -109,11 +99,18 @@ export class LivingPortraitEngine {
     this.realtime = new RealtimeSession({
       onRemoteStream: (stream) => {
         this.animator.attach(stream);
-        this.setPhase("speaking");
       },
       onUserTranscript: (text) => this.recordTurn("user", text),
-      onAssistantTranscript: (text) => {
-        this.recordTurn("assistant", text);
+      onAssistantTranscript: (text, final) => {
+        if (final) {
+          this.recordTurn("assistant", text);
+          if (this.phase === "speaking") this.setPhase("alive");
+        }
+      },
+      onSpeakingStart: () => {
+        if (this.phase !== "generating_slides") this.setPhase("speaking");
+      },
+      onSpeakingEnd: () => {
         if (this.phase === "speaking") this.setPhase("alive");
       },
       onToolCall: (name, args, callId) => this.handleToolCall(name, args, callId),
@@ -129,17 +126,23 @@ export class LivingPortraitEngine {
     });
 
     try {
-      sessionStore.incrementUsage();
-      await this.realtime.connect(this.persona, config.photoDataUrl);
+      await this.realtime.connect({
+        persona: this.persona,
+        photoDataUrl: config.photoDataUrl,
+      });
       this.setPhase("alive");
     } catch (err) {
       const code = (err as Error).message;
+      const errorCode =
+        code === "mic_denied" ? "mic_denied" : "realtime_failed";
       this.fail({
-        code: code === "daily_limit" ? "daily_limit" : "realtime_failed",
+        code: errorCode,
         message:
-          code === "daily_limit"
-            ? "Daily session limit reached."
-            : "Couldn't start the voice connection.",
+          code === "mic_denied"
+            ? "Microphone access is off. Allow it in browser settings, or use text below."
+            : code === "token_failed"
+              ? "Voice service unavailable — check your API key and Realtime access."
+              : "Couldn't start the voice connection.",
         recoverable: true,
       });
     }
@@ -147,6 +150,7 @@ export class LivingPortraitEngine {
 
   startListening(): void {
     if (!this.realtime) return;
+    void this.animator.resume();
     this.realtime.startListening();
     this.setPhase("listening");
   }
