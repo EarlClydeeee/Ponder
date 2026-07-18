@@ -1,0 +1,22 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e28]:
+    - generic [ref=e29]:
+      - generic [ref=e30]: black touchscreen smartphone
+      - button "End" [ref=e31]
+    - generic [ref=e33]:
+      - generic "black touchscreen smartphone — Awakening…" [ref=e34]:
+        - img "black touchscreen smartphone" [ref=e35]
+      - paragraph [ref=e36]: Awakening…
+      - generic [ref=e37]:
+        - paragraph [ref=e38]: black touchscreen smartphone
+        - paragraph [ref=e39]: Hi! I’m a black touchscreen smartphone, and I’m here to show how a pocket-sized device can connect people, store information, and make everyday life easier.
+    - generic [ref=e40]: Slides will appear as the story unfolds.
+    - generic [ref=e43]:
+      - generic [ref=e44]:
+        - button "Who are you?" [disabled] [ref=e45]
+        - button "Tell me your history" [disabled] [ref=e46]
+        - button "What should I notice?" [disabled] [ref=e47]
+      - button "Hold to talk" [disabled] [ref=e49]
+      - paragraph [ref=e53]: Hold to talk · headphones recommended
+  - button "Open Next.js Dev Tools" [ref=e22] [cursor=pointer]
+  - alert [ref=e26]

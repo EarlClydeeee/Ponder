@@ -1,0 +1,15 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - heading "Point. Capture. Learn." [level=1] [ref=e6]
+      - paragraph [ref=e7]: Photograph any object and interview it.
+    - generic [ref=e9]:
+      - generic [ref=e10]: ◉
+      - paragraph [ref=e11]: Ready when you are
+      - paragraph [ref=e12]: Center one artwork, object, or face in the frame.
+    - generic [ref=e13]:
+      - button "Open camera" [ref=e14]
+      - button "Upload a photo" [ref=e15]
+      - paragraph [ref=e16]: Free · no install
+  - button "Open Next.js Dev Tools" [ref=e22] [cursor=pointer]
+  - alert [ref=e26]
