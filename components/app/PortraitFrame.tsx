@@ -84,7 +84,13 @@ export function PortraitFrame({
         {alive && useAwakenPresentation && (
           <div className="pointer-events-none portrait-light-overlay" aria-hidden="true" />
         )}
-        {alive && showLivingFace && <LivingFace placement={awakenResult.facePlacement!} />}
+        {alive && showLivingFace && (
+          <LivingFace
+            placement={awakenResult.facePlacement!}
+            talking={phase === "speaking"}
+            amplitude={amplitude}
+          />
+        )}
       </div>
       {statusLabel && (
         <p aria-live="polite" className="text-[13px] font-medium text-[var(--color-accent)]">
@@ -105,7 +111,15 @@ export function PortraitFrame({
   );
 }
 
-function LivingFace({ placement }: { placement: NonNullable<AwakenResult["facePlacement"]> }) {
+function LivingFace({
+  placement,
+  talking,
+  amplitude,
+}: {
+  placement: NonNullable<AwakenResult["facePlacement"]>;
+  talking: boolean;
+  amplitude: number;
+}) {
   return (
     <div
       className="pointer-events-none absolute"
@@ -115,9 +129,10 @@ function LivingFace({ placement }: { placement: NonNullable<AwakenResult["facePl
         top: `${placement.y * 100}%`,
         transform: `translate(-50%, -50%) rotate(${placement.rotation}deg)`,
         "--living-face-size": `${48 * placement.scale}px`,
+        "--living-face-mouth": talking ? Math.min(1, amplitude * 1.8) : 0,
       } as CSSProperties}
     >
-      <div className="living-face">
+      <div className={`living-face ${talking ? "living-face--talking" : ""}`}>
         <div className="living-face__eyes"><span /><span /></div>
         <span className="living-face__smile" />
       </div>
