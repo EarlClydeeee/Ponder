@@ -1,0 +1,14 @@
+# Project-scoped Codex config — committed so teammates get Playwright MCP too.
+#
+# Codex loads project-local config ONLY for TRUSTED projects. If Playwright's
+# tools don't show up in `codex`, trust this folder once:
+#   - run `codex` here and accept the trust prompt, or
+#   - add  [projects.'<abs path to this repo>']  trust_level = "trusted"
+#     to ~/.codex/config.toml
+#
+# (This machine's ~/.codex/config.toml already defines a global `playwright`
+# server, so Codex works here regardless; this file is for fresh clones.)
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["@playwright/mcp@latest"]
