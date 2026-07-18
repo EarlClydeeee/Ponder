@@ -1,47 +1,15 @@
 /**
- * OpenAI Realtime over WebRTC (browser transport). RFC §3.
- * Owner: David — no one else opens WebRTC code (workflow principle 1).
- *
- * Ephemeral token comes from /api/realtime-token. The peer connection
- * carries mic audio up and assistant audio down; a data channel carries
- * events (transcripts, tool calls).
+ * OpenAI Realtime WebRTC client — the ONLY file that opens a peer connection.
+ * Ported verbatim from /test/speech-to-speech (proven against the live GA API);
+ * token fetch re-pointed at the shared /api/realtime-token route. RFC §4.
+ * Owner: David.
  */
-import type {
-  GenerateSlidesRequest,
-  RealtimeTokenResponse,
-  RealtimeVoice,
-} from "./types";
-import {
-  REALTIME_CALLS_URL,
-  REALTIME_MODEL,
-} from "./realtimeConfig";
-
-export const SLIDE_TOOL = {
-  type: "function" as const,
-  name: "generate_slides",
-  description:
-    "Generate 1-3 educational illustration slides for a topic being explained.",
-  parameters: {
-    type: "object",
-    properties: {
-      topic: { type: "string", description: "Concise topic for the slides" },
-      count: { type: "integer", enum: [1, 2, 3] },
-      style_hint: { type: "string" },
-    },
-    required: ["topic", "count", "style_hint"],
-  },
-};
-
-export type RealtimeTool = typeof SLIDE_TOOL;
+import { REALTIME_CALLS_URL, REALTIME_MODEL } from "./realtimeConfig";
+import type { RealtimeTokenResponse, RealtimeVoice } from "./types";
 
 export interface RealtimeConnectOptions {
   persona: { voice: RealtimeVoice; systemPrompt: string };
-  photoDataUrl?: string;
-  tools?: RealtimeTool[];
   sendGreeting?: boolean;
-  /** When true, model replies with spoken audio only (voice agent). */
-  audioOnly?: boolean;
-  onEvent?: (event: Record<string, unknown>) => void;
 }
 
 interface RealtimeCallbacks {
@@ -50,11 +18,6 @@ interface RealtimeCallbacks {
   onAssistantTranscript: (text: string, final: boolean) => void;
   onSpeakingStart?: () => void;
   onSpeakingEnd?: () => void;
-  onToolCall?: (
-    name: string,
-    args: GenerateSlidesRequest,
-    callId: string,
-  ) => Promise<void>;
   onClose: () => void;
   onError?: (message: string) => void;
 }
@@ -64,17 +27,12 @@ export class RealtimeSession {
   private dc: RTCDataChannel | null = null;
   private micStream: MediaStream | null = null;
   private micTrack: MediaStreamTrack | null = null;
-  private connectOptions: RealtimeConnectOptions | null = null;
   private assistantPartial = "";
 
   constructor(private callbacks: RealtimeCallbacks) {}
 
-  /** Mint token, open peer connection, configure session from options. */
   async connect(options: RealtimeConnectOptions): Promise<void> {
-    this.connectOptions = options;
-
     const tokenRes = await fetch("/api/realtime-token", { method: "POST" });
-    if (tokenRes.status === 429) throw new Error("token_failed");
     if (!tokenRes.ok) throw new Error("token_failed");
     const { token } = (await tokenRes.json()) as RealtimeTokenResponse;
 
@@ -133,49 +91,30 @@ export class RealtimeSession {
   }
 
   private configureSession(options: RealtimeConnectOptions): void {
-    const tools =
-      options.tools ??
-      (options.photoDataUrl ? [SLIDE_TOOL] : []);
-
     this.send({
       type: "session.update",
       session: {
         type: "realtime",
         model: REALTIME_MODEL,
-        output_modalities: options.audioOnly ? ["audio"] : ["audio", "text"],
+        output_modalities: ["audio"],
         instructions: options.persona.systemPrompt,
-        tools,
+        tools: [],
         audio: {
           input: {
             turn_detection: null,
             transcription: { model: "whisper-1" },
           },
-          output: {
-            voice: options.persona.voice,
-          },
+          output: { voice: options.persona.voice },
         },
       },
     });
-
-    if (options.photoDataUrl) {
-      this.send({
-        type: "conversation.item.create",
-        item: {
-          type: "message",
-          role: "user",
-          content: [{ type: "input_image", image_url: options.photoDataUrl }],
-        },
-      });
-    }
 
     if (options.sendGreeting !== false) {
       this.send({ type: "response.create" });
     }
   }
 
-  private async handleEvent(event: Record<string, unknown>): Promise<void> {
-    this.connectOptions?.onEvent?.(event);
-
+  private handleEvent(event: Record<string, unknown>): void {
     switch (event.type) {
       case "conversation.item.input_audio_transcription.completed":
         this.callbacks.onUserTranscript(String(event.transcript ?? ""));
@@ -198,7 +137,6 @@ export class RealtimeSession {
         break;
       case "response.done":
         this.callbacks.onSpeakingEnd?.();
-        await this.handleResponseDone(event);
         break;
       case "error":
         this.callbacks.onError?.(
@@ -208,53 +146,10 @@ export class RealtimeSession {
           ),
         );
         break;
-      case "response.function_call_arguments.done": {
-        if (!this.callbacks.onToolCall) break;
-        const args = JSON.parse(
-          String(event.arguments ?? "{}"),
-        ) as GenerateSlidesRequest;
-        await this.callbacks.onToolCall(
-          String(event.name ?? "generate_slides"),
-          args,
-          String(event.call_id ?? ""),
-        );
-        break;
-      }
     }
-  }
-
-  private async handleResponseDone(
-    event: Record<string, unknown>,
-  ): Promise<void> {
-    if (!this.callbacks.onToolCall) return;
-    const response = event.response as
-      | { output?: Array<Record<string, unknown>> }
-      | undefined;
-    for (const item of response?.output ?? []) {
-      if (item.type !== "function_call" || item.status !== "completed") continue;
-      const args = JSON.parse(String(item.arguments ?? "{}")) as GenerateSlidesRequest;
-      await this.callbacks.onToolCall(
-        String(item.name ?? "generate_slides"),
-        args,
-        String(item.call_id ?? ""),
-      );
-    }
-  }
-
-  respondToTool(callId: string, output: unknown): void {
-    this.send({
-      type: "conversation.item.create",
-      item: {
-        type: "function_call_output",
-        call_id: callId,
-        output: JSON.stringify(output),
-      },
-    });
-    this.send({ type: "response.create" });
   }
 
   startListening(): void {
-    // Clear any stale audio, then stream mic until stopListening commits.
     this.send({ type: "input_audio_buffer.clear" });
     if (this.micTrack) this.micTrack.enabled = true;
   }
@@ -277,10 +172,6 @@ export class RealtimeSession {
     this.send({ type: "response.create" });
   }
 
-  isConnected(): boolean {
-    return this.dc?.readyState === "open";
-  }
-
   private send(payload: unknown): void {
     if (this.dc?.readyState === "open") this.dc.send(JSON.stringify(payload));
   }
@@ -294,7 +185,6 @@ export class RealtimeSession {
     this.micTrack = null;
     this.dc = null;
     this.pc = null;
-    this.connectOptions = null;
     this.assistantPartial = "";
   }
 }

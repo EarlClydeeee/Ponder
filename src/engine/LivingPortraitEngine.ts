@@ -4,29 +4,41 @@
  * via useLivingPortrait. RFC §2–3.
  * Owner: David.
  *
- * State flow (RFC §3):
- *   IDLE → ANALYZING → CONNECTING → ALIVE → LISTENING ⇄ SPEAKING
- *          → GENERATING_SLIDES → ALIVE
- *   fail paths → ERROR / FALLBACK_TEXT
+ * Merged pipeline (proven in /test/persona-chat + /test/speech-to-speech):
+ *   IDLE → ANALYZING (/api/generate-persona) → CONNECTING (Realtime WebRTC)
+ *        → ALIVE → LISTENING ⇄ SPEAKING
+ *   fail paths → ERROR / FALLBACK_TEXT (text replies via /api/persona-chat SSE)
+ * Slides are deferred: generating_slides never fires and regenerateSlides is a
+ * no-op until SlideDeckCoordinator is re-wired.
  */
-import { analyzePortrait } from "./PersonaAnalyzer";
+import { generatePersona, sendPersonaChat } from "./personaChat";
 import { PortraitAnimator } from "./PortraitAnimator";
 import { RealtimeSession } from "./RealtimeSession";
 import { sessionStore } from "./sessionStore";
-import { SlideDeckCoordinator } from "./SlideDeckCoordinator";
 import type {
   AwakenConfig,
   EngineEvents,
-  GenerateSlidesRequest,
-  PersonaConfig,
+  PersonaProfile,
   PortraitError,
   PortraitPhase,
-  SlideDeck,
   StoredSession,
   TranscriptTurn,
 } from "./types";
 
 type Handler<E extends keyof EngineEvents> = (payload: EngineEvents[E]) => void;
+
+const SPEECH_INSTRUCTION =
+  "\n\nVOICE MODE\n" +
+  "Always respond with spoken voice audio. Never reply with text only. " +
+  "You have no web search tool in voice mode; rely on your grounding " +
+  "knowledge and say so briefly if asked about current events.";
+
+function openingInstruction(greeting: string): string {
+  return (
+    "\n\nOPENING\n" +
+    `When the session starts, greet the user by saying, in character: "${greeting}"`
+  );
+}
 
 export class LivingPortraitEngine {
   private handlers: { [E in keyof EngineEvents]: Set<Handler<E>> } = {
@@ -38,9 +50,9 @@ export class LivingPortraitEngine {
 
   private phase: PortraitPhase = "idle";
   private sessionId = "";
-  private persona: PersonaConfig | null = null;
+  private profile: PersonaProfile | null = null;
   private realtime: RealtimeSession | null = null;
-  private slides: SlideDeckCoordinator | null = null;
+  private transcript: TranscriptTurn[] = [];
   readonly animator = new PortraitAnimator();
 
   on<E extends keyof EngineEvents>(event: E, handler: Handler<E>): () => void {
@@ -62,7 +74,14 @@ export class LivingPortraitEngine {
 
   private fail(error: PortraitError): void {
     this.emit("error", error);
-    this.setPhase(error.code === "realtime_failed" ? "fallback_text" : "error");
+    // mic_denied joins realtime_failed in text mode: QAD S-02 requires a text
+    // fallback to be offered when the mic is blocked.
+    const fallback =
+      error.code === "realtime_failed" || error.code === "mic_denied";
+    this.setPhase(fallback ? "fallback_text" : "error");
+    if (fallback && this.transcript.length === 0 && this.profile) {
+      this.recordTurn("assistant", this.profile.greeting);
+    }
   }
 
   getPhase(): PortraitPhase {
@@ -70,16 +89,17 @@ export class LivingPortraitEngine {
   }
 
   getSubjectLabel(): string {
-    return this.persona?.subjectLabel ?? "";
+    return this.profile?.subjectLabel ?? "";
   }
 
   async awaken(config: AwakenConfig): Promise<void> {
     this.sessionId = config.sessionId ?? crypto.randomUUID();
+    this.transcript = [];
 
-    // 1. ANALYZING — persona pre-pass.
+    // 1. ANALYZING — persona generation (proven /test/persona-chat pipeline).
     this.setPhase("analyzing");
     try {
-      this.persona = await analyzePortrait(config);
+      this.profile = await generatePersona(config.photoDataUrl);
     } catch {
       this.fail({
         code: "analyze_failed",
@@ -93,27 +113,23 @@ export class LivingPortraitEngine {
     // tab close still leaves something to recover.
     this.persistShell(config.photoDataUrl);
 
-    // 2. CONNECTING — open Realtime over WebRTC.
+    // 2. CONNECTING — open Realtime over WebRTC (proven /test/speech-to-speech).
     this.setPhase("connecting");
-    this.slides = new SlideDeckCoordinator((deck) => this.handleDeck(deck));
     this.realtime = new RealtimeSession({
       onRemoteStream: (stream) => {
         this.animator.attach(stream);
+        void this.animator.resume();
       },
       onUserTranscript: (text) => this.recordTurn("user", text),
       onAssistantTranscript: (text, final) => {
-        if (final) {
-          this.recordTurn("assistant", text);
-          if (this.phase === "speaking") this.setPhase("alive");
-        }
+        if (final) this.recordTurn("assistant", text);
       },
       onSpeakingStart: () => {
-        if (this.phase !== "generating_slides") this.setPhase("speaking");
+        if (this.phase !== "listening") this.setPhase("speaking");
       },
       onSpeakingEnd: () => {
         if (this.phase === "speaking") this.setPhase("alive");
       },
-      onToolCall: (name, args, callId) => this.handleToolCall(name, args, callId),
       onClose: () => {
         if (this.phase !== "idle" && this.phase !== "error") {
           this.fail({
@@ -127,16 +143,30 @@ export class LivingPortraitEngine {
 
     try {
       await this.realtime.connect({
-        persona: this.persona,
-        photoDataUrl: config.photoDataUrl,
+        persona: {
+          voice: this.profile.voice,
+          systemPrompt:
+            this.profile.systemPrompt +
+            openingInstruction(this.profile.greeting) +
+            SPEECH_INSTRUCTION,
+        },
+        sendGreeting: true,
       });
+
+      void this.animator.resume();
       this.setPhase("alive");
     } catch (err) {
+      if (this.phase === "idle") return; // endSession() raced the connect
       const code = (err as Error).message;
-      const errorCode =
-        code === "mic_denied" ? "mic_denied" : "realtime_failed";
+      this.realtime?.close();
+      this.realtime = null;
       this.fail({
-        code: errorCode,
+        code:
+          code === "mic_denied"
+            ? "mic_denied"
+            : code === "token_failed"
+              ? "token_failed"
+              : "realtime_failed",
         message:
           code === "mic_denied"
             ? "Microphone access is off. Allow it in browser settings, or use text below."
@@ -162,46 +192,53 @@ export class LivingPortraitEngine {
   }
 
   sendText(text: string): void {
-    this.realtime?.sendText(text);
-    this.recordTurn("user", text);
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    this.recordTurn("user", trimmed);
+
+    if (this.phase === "fallback_text") {
+      void this.sendFallbackChat(trimmed);
+      return;
+    }
+
+    this.realtime?.sendText(trimmed);
   }
 
   async regenerateSlides(deckId: string): Promise<void> {
-    await this.slides?.regenerate(deckId);
+    // Slides deferred — SlideDeckCoordinator stays dormant until re-wired.
+    void deckId;
   }
 
   endSession(): void {
     this.realtime?.close();
     this.animator.detach();
     this.realtime = null;
+    this.profile = null;
+    this.transcript = [];
     this.setPhase("idle");
   }
 
   // --- internals ---
 
-  private async handleToolCall(
-    name: string,
-    args: GenerateSlidesRequest,
-    callId: string,
-  ): Promise<void> {
-    if (name !== "generate_slides" || !this.slides) return;
-    const prev = this.phase;
-    this.setPhase("generating_slides");
-    const deck = await this.slides.generate({
-      topic: args.topic,
-      count: args.count,
-      styleHint: this.persona?.styleHint ?? args.style_hint,
-    });
-    this.realtime?.respondToTool(callId, {
-      status: deck.status,
-      slide_count: deck.slides.length,
-    });
-    this.setPhase(prev === "generating_slides" ? "alive" : prev);
-  }
-
-  private handleDeck(deck: SlideDeck): void {
-    this.emit("slides", deck);
-    if (deck.status === "ready") sessionStore.appendDeck(this.sessionId, deck);
+  /**
+   * Text fallback rides the proven /api/persona-chat SSE route with the same
+   * PersonaProfile. The reply lands as one final turn; incremental deltas
+   * would need upsert semantics in the C3 transcript reducer first.
+   */
+  private async sendFallbackChat(userMessage: string): Promise<void> {
+    if (!this.profile) return;
+    try {
+      const history = this.transcript.slice(0, -1);
+      const res = await sendPersonaChat(this.profile, history, userMessage);
+      this.recordTurn("assistant", res.reply);
+    } catch {
+      // Stay in fallback_text — surface the error without a phase change.
+      this.emit("error", {
+        code: "unknown",
+        message: "Text fallback failed. Try again.",
+        recoverable: true,
+      });
+    }
   }
 
   private recordTurn(role: TranscriptTurn["role"], text: string): void {
@@ -212,17 +249,23 @@ export class LivingPortraitEngine {
       text,
       at: new Date().toISOString(),
     };
+    this.transcript.push(turn);
     this.emit("transcript", turn);
     sessionStore.appendTurn(this.sessionId, turn);
   }
 
   private persistShell(photoDataUrl: string): void {
-    if (!this.persona) return;
+    if (!this.profile) return;
     const shell: StoredSession = {
       id: this.sessionId,
-      title: this.persona.subjectLabel,
+      title: this.profile.subjectLabel,
       photoDataUrl,
-      persona: this.persona,
+      persona: {
+        subjectLabel: this.profile.subjectLabel,
+        voice: this.profile.voice,
+        systemPrompt: this.profile.systemPrompt,
+        styleHint: this.profile.styleHint,
+      },
       transcript: [],
       decks: [],
       createdAt: new Date().toISOString(),

@@ -71,13 +71,10 @@ export interface SlideDeck {
   status: "generating" | "ready" | "failed";
 }
 
-export type DemoAsset = "mona_lisa";
-
 export interface AwakenConfig {
-  /** Downscaled capture (≤1024px) as a data URL, or a public path for demo assets. */
+  /** Downscaled capture (≤1024px) as a JPEG data URL. */
   photoDataUrl: string;
   sessionId?: string;
-  demoAsset?: DemoAsset | null;
 }
 
 export interface PortraitError {

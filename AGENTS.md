@@ -1,6 +1,6 @@
 # Ponder — agent guide
 
-> This file and [CLAUDE.md](CLAUDE.md) are kept **identical** — edit both together.
+> This file and [AGENTS.md](AGENTS.md) are kept **identical** — edit both together.
 > Claude Code auto-loads `CLAUDE.md`; Codex and other agents load `AGENTS.md`.
 
 ## What Ponder is
@@ -39,11 +39,12 @@ Contracts the whole team codes against live in [CONTRACT.md](CONTRACT.md).
 ## Architecture at a glance
 
 ```
-Browser (/app) ──WebRTC──────────────► OpenAI Realtime (voice+vision)
+Browser (/app) ──WebRTC──────────────► OpenAI Realtime (voice)
       │  fetch                            ▲ ephemeral token
       ├──► /api/realtime-token ───────────┘
-      ├──► /api/analyze-portrait ───► GPT-4o vision (persona pre-pass)
-      ├──► /api/generate-slides ────► gpt-image-1 (slides)
+      ├──► /api/generate-persona ──► vision (PersonaProfile: systemPrompt+voice)
+      ├──► /api/persona-chat ─────► SSE text fallback (web-search grounded)
+      ├──► /api/generate-slides ────► gpt-image-1 (slides — dormant)
       └──► localStorage (sessions)
 ```
 
@@ -61,8 +62,8 @@ Browser (/app) ──WebRTC──────────────► OpenAI 
 Layout:
 ```
 app/            page.tsx (/), app/page.tsx (/app), api/*/route.ts
-src/engine/     LivingPortraitEngine, RealtimeSession (WebRTC), PersonaAnalyzer,
-                SlideDeckCoordinator, PortraitAnimator, sessionStore, types
+src/engine/     LivingPortraitEngine, RealtimeSession (WebRTC), personaChat,
+                SlideDeckCoordinator (dormant), PortraitAnimator, sessionStore, types
 src/hooks/      useLivingPortrait          src/lib/  image downscale
 components/app/ MobileShell, CaptureScreen, ConversationScreen, PortraitFrame,
                 TalkButton, SlideCarousel
@@ -171,11 +172,11 @@ Five people build in parallel, so **don't develop new features directly in
 
 ## Known gaps / gotchas
 
-- **Demo photo is an SVG placeholder** (`public/demo/mona-lisa.svg`). The
-  Realtime vision pass needs a real `mona-lisa.jpg`; the demo persona is canned
-  so the flow still works offline.
-- **`RealtimeSession` event names are a first pass** against the documented
-  OpenAI Realtime WebRTC shapes — expect to tune them against the live API.
+- **Slides are dormant** since the sandbox merge: `generating_slides` never
+  fires, `regenerateSlides` is a no-op, `SlideDeckCoordinator` is unwired.
+- **`RealtimeSession` is the proven `/test/speech-to-speech` port** (verified
+  against the live GA API); the sandbox keeps frozen copies as a regression
+  harness — don't "reconcile" them back together.
 - **Mobile shell is now a plain phone-width column** (no device bezel);
   [dsd-curioframe.md §4](docs/dsd-curioframe.md) still describes the old bezel.
 - Git on Windows warns `LF will be replaced by CRLF` — harmless.
