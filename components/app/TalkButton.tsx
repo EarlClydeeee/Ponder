@@ -1,9 +1,10 @@
 /**
- * Push-to-talk control — 72px circle (DSD §4). Hold to speak.
+ * Push-to-talk control — 72px circle (DSD §4). Hold to speak, release to send.
  * Owner: Ivy.
  */
 "use client";
 
+import { useRef } from "react";
 import type { PortraitPhase } from "@/src/engine/types";
 
 interface Props {
@@ -11,36 +12,72 @@ interface Props {
   enabled: boolean;
   onStart: () => void;
   onStop: () => void;
+  showLabel?: boolean;
 }
 
-export function TalkButton({ phase, enabled, onStart, onStop }: Props) {
+export function TalkButton({
+  phase,
+  enabled,
+  onStart,
+  onStop,
+  showLabel = false,
+}: Props) {
   const listening = phase === "listening";
+  const speaking = phase === "speaking";
+  const holdingRef = useRef(false);
+
+  const label = speaking
+    ? "Speaking…"
+    : listening
+      ? "Release to send"
+      : "Hold to talk";
+
+  function handleDown(e: React.PointerEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    if (!enabled || speaking) return;
+    holdingRef.current = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    onStart();
+  }
+
+  function handleUp(e: React.PointerEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    if (!holdingRef.current) return;
+    holdingRef.current = false;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    if (listening) onStop();
+  }
 
   return (
-    <button
-      type="button"
-      disabled={!enabled}
-      onPointerDown={(e) => {
-        e.preventDefault();
-        if (enabled) onStart();
-      }}
-      onPointerUp={(e) => {
-        e.preventDefault();
-        if (listening) onStop();
-      }}
-      onPointerLeave={() => {
-        if (listening) onStop();
-      }}
-      aria-label={listening ? "Release to send" : "Hold to talk"}
-      className={`
-        flex h-[72px] w-[72px] select-none items-center justify-center rounded-full
-        border-4 border-[var(--color-primary)] text-[var(--color-inverse)]
-        transition disabled:opacity-40
-        ${listening ? "animate-talk-pulse bg-[var(--color-primary-hover)]" : "bg-[var(--color-primary)]"}
-      `}
-    >
-      <MicIcon />
-    </button>
+    <div className="flex flex-col items-center gap-2">
+      <button
+        type="button"
+        disabled={!enabled || speaking}
+        onPointerDown={handleDown}
+        onPointerUp={handleUp}
+        onPointerCancel={handleUp}
+        onLostPointerCapture={() => {
+          if (holdingRef.current && listening) {
+            holdingRef.current = false;
+            onStop();
+          }
+        }}
+        aria-label={label}
+        className={`
+          flex h-[72px] w-[72px] touch-none select-none items-center justify-center rounded-full
+          border-4 border-[var(--color-primary)] text-[var(--color-inverse)]
+          transition disabled:opacity-40
+          ${listening ? "animate-talk-pulse bg-[var(--color-primary-hover)]" : "bg-[var(--color-primary)]"}
+        `}
+      >
+        <MicIcon />
+      </button>
+      {showLabel && (
+        <p className="text-center text-xs text-[var(--color-muted)]">{label}</p>
+      )}
+    </div>
   );
 }
 

@@ -54,7 +54,7 @@ function Hero() {
         Open Ponder →
       </Link>
       <p className="text-[13px] text-[var(--color-muted)]">
-        Free · 3 sessions/day · no install
+        Free · no install
       </p>
     </section>
   );
@@ -127,7 +127,7 @@ function Cta() {
         Open Ponder →
       </Link>
       <p className="text-[13px] text-[var(--color-muted)]">
-        Free · 3 sessions/day · no install
+        Free · no install
       </p>
     </section>
   );

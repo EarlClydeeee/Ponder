@@ -14,6 +14,8 @@ with the owner's review.
 
 Extra route: `POST /api/analyze-portrait` → `PersonaConfig` (persona pre-pass).
 
+Speech-to-speech test harness (self-contained): [app/test/speech-to-speech/](app/test/speech-to-speech/) — not part of C1–C6; reintegrate piecemeal from there.
+
 ## Engine public API (C2)
 
 ```ts
