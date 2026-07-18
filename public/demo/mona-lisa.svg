@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Mona Lisa demo placeholder">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="70%">
+      <stop offset="0%" stop-color="#3a3428"/>
+      <stop offset="100%" stop-color="#1a1814"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <ellipse cx="256" cy="210" rx="86" ry="104" fill="#4a4030"/>
+  <path d="M150 512c0-88 47-150 106-150s106 62 106 150z" fill="#3a3325"/>
+  <circle cx="228" cy="200" r="8" fill="#241f16"/>
+  <circle cx="284" cy="200" r="8" fill="#241f16"/>
+  <path d="M232 250q24 16 48 0" stroke="#241f16" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <rect x="16" y="16" width="480" height="480" fill="none" stroke="#c9a227" stroke-width="8" rx="12"/>
+  <text x="256" y="470" text-anchor="middle" fill="#9c958a" font-family="serif" font-size="20">Mona Lisa — demo</text>
+</svg>
