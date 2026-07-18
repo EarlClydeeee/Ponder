@@ -5,14 +5,14 @@ with the owner's review.
 
 | # | Contract | Owner | Consumers | Location |
 |---|----------|-------|-----------|----------|
-| C1 | `StoredSession`, `SlideDeck`, `PortraitPhase`, `PersonaConfig` types | David | All | [src/engine/types.ts](src/engine/types.ts) |
+| C1 | `StoredSession`, `SlideDeck`, `PortraitPhase`, `PersonaConfig`, `AwakenResult` types | David | All | [src/engine/types.ts](src/engine/types.ts) |
 | C2 | `LivingPortraitEngine` public API | David | Ivy, Elton | [src/engine/LivingPortraitEngine.ts](src/engine/LivingPortraitEngine.ts) |
 | C3 | `useLivingPortrait()` hook shape | David | Ivy | [src/hooks/useLivingPortrait.ts](src/hooks/useLivingPortrait.ts) |
 | C4 | `POST /api/realtime-token` → `{ token, session_id }` | Shello | David | [app/api/realtime-token/route.ts](app/api/realtime-token/route.ts) |
 | C5 | `POST /api/generate-slides` → `{ deck_id, topic, slides[] }` | Shello | David | [app/api/generate-slides/route.ts](app/api/generate-slides/route.ts) |
 | C6 | DSD theme tokens | Ivy | All | [app/globals.css](app/globals.css) + [lib/theme.ts](lib/theme.ts) |
 
-Extra route: `POST /api/analyze-portrait` → `PersonaConfig` (persona pre-pass).
+Extra route: `POST /api/analyze-portrait` → `AwakenResult` (persona pre-pass).
 
 ## Engine public API (C2)
 

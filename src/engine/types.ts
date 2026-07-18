@@ -33,6 +33,17 @@ export interface PersonaConfig {
   styleHint: string;
 }
 
+/** Capture pre-pass result used by the isolated Awaken portrait flow. */
+export type AwakenResult = {
+  subjectLabel: string;
+  subjectType: "artwork" | "portrait" | "object" | "animal" | "unknown";
+  personaName: string;
+  personaTone: string;
+  greeting: string;
+  animationStyle: "parallax" | "blink" | "ambient";
+  isFallback: boolean;
+};
+
 export interface TranscriptTurn {
   id: string;
   role: "user" | "assistant";
@@ -118,4 +129,4 @@ export interface AnalyzePortraitRequest {
   photoDataUrl: string;
 }
 
-export type AnalyzePortraitResponse = PersonaConfig;
+export type AnalyzePortraitResponse = AwakenResult;

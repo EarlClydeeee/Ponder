@@ -2,8 +2,26 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { PortraitFrame } from "@/components/app/PortraitFrame";
+import type { AwakenResult, PortraitPhase } from "@/src/engine/types";
 
-type CameraState = "ready" | "requesting" | "live" | "captured" | "error";
+type CameraState =
+  | "ready"
+  | "requesting"
+  | "live"
+  | "captured"
+  | "analyzing"
+  | "awakening"
+  | "awake"
+  | "error";
+
+function portraitPhase(cameraState: CameraState): PortraitPhase {
+  if (cameraState === "analyzing") return "analyzing";
+  if (cameraState === "awakening") return "connecting";
+  if (cameraState === "awake") return "alive";
+  if (cameraState === "error") return "error";
+  return "idle";
+}
 
 export default function CameraTestPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -11,6 +29,8 @@ export default function CameraTestPage() {
   const [cameraState, setCameraState] = useState<CameraState>("ready");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [awakenResult, setAwakenResult] = useState<AwakenResult | null>(null);
+  const awakenTimerRef = useRef<number | null>(null);
 
   function stopCamera() {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -18,7 +38,13 @@ export default function CameraTestPage() {
     if (videoRef.current) videoRef.current.srcObject = null;
   }
 
-  useEffect(() => stopCamera, []);
+  useEffect(
+    () => () => {
+      stopCamera();
+      if (awakenTimerRef.current) window.clearTimeout(awakenTimerRef.current);
+    },
+    [],
+  );
 
   async function startCamera() {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -69,10 +95,50 @@ export default function CameraTestPage() {
 
   function retakePhoto() {
     setPhotoUrl(null);
+    setAwakenResult(null);
+    setErrorMessage(null);
     void startCamera();
   }
 
-  const hasPhoto = cameraState === "captured" && photoUrl;
+  async function awakenPortrait() {
+    if (!photoUrl) return;
+
+    setErrorMessage(null);
+    setCameraState("analyzing");
+
+    try {
+      const response = await fetch("/api/analyze-portrait", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoDataUrl: photoUrl }),
+      });
+      if (!response.ok) throw new Error("Portrait analysis failed");
+
+      const result = (await response.json()) as AwakenResult;
+      setAwakenResult(result);
+      setCameraState("awakening");
+      awakenTimerRef.current = window.setTimeout(() => {
+        setCameraState("awake");
+        awakenTimerRef.current = null;
+      }, 400);
+    } catch {
+      setErrorMessage("We couldn’t awaken this portrait. Please try again.");
+      setCameraState("error");
+    }
+  }
+
+  const hasPhoto = Boolean(photoUrl);
+  const showPortrait = hasPhoto && ["analyzing", "awakening", "awake", "error"].includes(cameraState);
+  const portraitStatus =
+    cameraState === "analyzing"
+      ? "Reading your photo…"
+      : cameraState === "awakening"
+        ? "Awakening…"
+        : cameraState === "awake"
+          ? awakenResult?.isFallback
+            ? "Awake — a playful introduction"
+            : "Awake"
+          : errorMessage ?? undefined;
 
   return (
     <main className="min-h-dvh bg-[var(--color-bg)] px-5 py-5 text-[var(--color-text)]">
@@ -91,7 +157,9 @@ export default function CameraTestPage() {
         </header>
 
         <section className="mt-9 text-center">
-          <p className="text-sm text-[var(--color-primary)]">Step 1 of 2</p>
+          <p className="text-sm text-[var(--color-primary)]">
+            {cameraState === "awake" ? "Step 2 of 2" : "Step 1 of 2"}
+          </p>
           <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl leading-tight">
             Frame what you’d like to meet
           </h1>
@@ -100,8 +168,17 @@ export default function CameraTestPage() {
           </p>
         </section>
 
-        <section className="relative mt-8 aspect-[3/4] overflow-hidden rounded-[28px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-lg)]">
-          {hasPhoto ? (
+        <section className={`relative mt-8 overflow-hidden rounded-[28px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-lg)] ${showPortrait ? "p-3" : "aspect-[3/4]"}`}>
+          {showPortrait ? (
+            <PortraitFrame
+              photoUrl={photoUrl}
+              phase={portraitPhase(cameraState)}
+              subjectLabel={awakenResult?.subjectLabel ?? "Your portrait"}
+              amplitude={0}
+              awakenResult={awakenResult}
+              status={portraitStatus}
+            />
+          ) : photoUrl ? (
             <Image src={photoUrl} alt="Your captured portrait" fill unoptimized className="object-cover" />
           ) : (
             <>
@@ -134,7 +211,7 @@ export default function CameraTestPage() {
             </div>
           )}
 
-          {hasPhoto && (
+          {cameraState === "captured" && hasPhoto && (
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-5 pb-5 pt-14">
               <p className="text-sm font-medium">Looking good.</p>
               <p className="mt-1 text-xs text-white/70">Retake it if the subject isn’t centered.</p>
@@ -152,14 +229,47 @@ export default function CameraTestPage() {
             >
               <span className="h-12 w-12 rounded-full bg-[var(--color-primary)]" />
             </button>
-          ) : hasPhoto ? (
+          ) : cameraState === "captured" && hasPhoto ? (
             <div className="space-y-3">
               <button
                 type="button"
-                disabled
-                className="w-full rounded-[14px] bg-[var(--color-primary)] px-6 py-4 font-semibold text-[var(--color-inverse)] opacity-60"
+                onClick={() => void awakenPortrait()}
+                className="w-full rounded-[14px] bg-[var(--color-primary)] px-6 py-4 font-semibold text-[var(--color-inverse)] transition active:scale-[0.98]"
               >
-                Awaken <span className="font-normal">· coming next</span>
+                Awaken
+              </button>
+              <button
+                type="button"
+                onClick={retakePhoto}
+                className="w-full rounded-[14px] border border-[var(--color-border)] px-6 py-3 text-sm font-medium text-[var(--color-text)] transition hover:border-[var(--color-primary)]"
+              >
+                Retake photo
+              </button>
+            </div>
+          ) : cameraState === "analyzing" || cameraState === "awakening" ? (
+            <button
+              type="button"
+              disabled
+              className="w-full rounded-[14px] bg-[var(--color-primary)] px-6 py-4 font-semibold text-[var(--color-inverse)] opacity-60"
+            >
+              {cameraState === "analyzing" ? "Reading your photo…" : "Awakening…"}
+            </button>
+          ) : cameraState === "awake" ? (
+            <button
+              type="button"
+              onClick={retakePhoto}
+              className="w-full rounded-[14px] border border-[var(--color-border)] px-6 py-3 text-sm font-medium text-[var(--color-text)] transition hover:border-[var(--color-primary)]"
+            >
+              Capture another portrait
+            </button>
+          ) : cameraState === "error" && hasPhoto ? (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => void awakenPortrait()}
+                className="w-full rounded-[14px] bg-[var(--color-primary)] px-6 py-4 font-semibold text-[var(--color-inverse)] transition active:scale-[0.98]"
+              >
+                Try awakening again
               </button>
               <button
                 type="button"
